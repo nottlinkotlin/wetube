@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,6 +22,7 @@ import androidx.navigation.NavHost
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgs
 import com.example.intelteamproject.compose.BoardScreen
 import com.example.intelteamproject.compose.LoginScreen
 import com.example.intelteamproject.compose.MainScreen
@@ -34,6 +36,8 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
 
@@ -68,9 +72,9 @@ class MainActivity : ComponentActivity() {
                     val user: FirebaseUser? = mAuth.currentUser
                     val startDestination = remember {
                         if (user == null) {
-                            "login"
+                            Screen.Login.route
                         } else {
-                            "main"
+                            Screen.Main.route
                         }
                     }
                     val signInIntent = googleSignInClient.signInIntent
@@ -85,7 +89,8 @@ class MainActivity : ComponentActivity() {
                                     // Google SignIn was successful, authenticate with firebase
                                     val account = task.getResult(ApiException::class.java)!!
                                     firebaseAuthWithGoogle(account.idToken!!)
-                                    navController.navigate("main")
+                                    navController.popBackStack()
+                                    navController.navigate(Screen.Main.route)
                                 } catch (e: Exception) {
                                     // Google SignIn failed
                                     Log.d("SignIn", "로그인 실패")
@@ -98,7 +103,7 @@ class MainActivity : ComponentActivity() {
                     //navigation
                     NavHost(navController = navController, startDestination = startDestination) {
                         composable(Screen.Login.route) {
-                            LoginScreen() {
+                            LoginScreen {
                                 launcher.launch(signInIntent)
                             }
                         }
@@ -107,44 +112,7 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Messenger.route) { MessengerScreen(navController) }
                         composable(Screen.Manage.route) { ManageScreen(navController) }
                     }
-
-                    if (mAuth.currentUser == null) {
-                        LoginScreen() {
-                            signIn()
-                        }
-                    } else {
-//                        val user: FirebaseUser = mAuth.currentUser!!
-                        navController.navigate("main")
-                    }
-
                 }
-            }
-        }
-    }
-
-    private fun signIn() {
-        val signInIntent = googleSignInClient.signInIntent
-        startActivityForResult(signInIntent, RC_SIGN_IN)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        // result returned from launching the intent from GoogleSignInApi.getSignInIntent()
-        if (requestCode == RC_SIGN_IN) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-            val exception = task.exception
-            if (task.isSuccessful) {
-                try {
-                    // Google SignIn was successful, authenticate with firebase
-                    val account = task.getResult(ApiException::class.java)!!
-                    firebaseAuthWithGoogle(account.idToken!!)
-                } catch (e: Exception) {
-                    // Google SignIn failed
-                    Log.d("SignIn", "로그인 실패")
-                }
-            } else {
-                Log.d("SignIn", exception.toString())
             }
         }
     }
@@ -179,11 +147,10 @@ class MainActivity : ComponentActivity() {
         mAuth.signOut()
         googleSignInClient.signOut().addOnSuccessListener {
             Toast.makeText(this, "로그아웃 성공", Toast.LENGTH_SHORT).show()
-            navController.navigate("login")
+            navController.navigate(Screen.Login.route)
         }.addOnFailureListener {
             Toast.makeText(this, "로그아웃 실패", Toast.LENGTH_SHORT).show()
         }
     }
-
 }
 
