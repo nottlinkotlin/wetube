@@ -1,6 +1,5 @@
 package com.example.intelteamproject.compose
 
-import android.text.Layout.Alignment
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -37,6 +37,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,7 +75,7 @@ fun MessengerScreen(navController: NavController) {
                     .height(60.dp)
                     .background(color = Color.White, shape = RectangleShape),
                 horizontalArrangement = Arrangement.SpaceBetween,
-//                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
                     onClick = { /*TODO*/ },
@@ -91,7 +92,7 @@ fun MessengerScreen(navController: NavController) {
                         .width(350.dp)
                         .fillMaxHeight(1f),
                     horizontalArrangement = Arrangement.Start,
-//                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(
                         onClick = {
@@ -144,7 +145,7 @@ fun ContactView() {
     ) {
         Row(
             Modifier.fillMaxSize(),
-//            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Spacer(modifier = Modifier.width(15.dp))
@@ -214,7 +215,7 @@ fun UserInfo(contact: Int) {
     ) {
         Row(
             Modifier.fillMaxSize(),
-//            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Spacer(modifier = Modifier.width(15.dp))
@@ -288,7 +289,7 @@ fun MessageList(message: Int) {
     ) {
         Row(
             Modifier.fillMaxSize(),
-//            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Spacer(modifier = Modifier.width(15.dp))
@@ -302,20 +303,39 @@ fun MessageList(message: Int) {
                     contentScale = ContentScale.Crop,
                 )
             }
-            Spacer(modifier = Modifier.width(15.dp))
+            Spacer(modifier = Modifier.width(3.dp))
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(268.dp),
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.Bottom,
             ) {
+                Spacer(modifier = Modifier.height(15.dp))
                 Row(
-
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "이름${message}", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "이름${message}",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.fillMaxWidth().height(25.dp)
+                    )
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
-                Text(text = "가장 최근 메세지", fontSize = 15.sp)
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(30.dp)
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = "가장 최근 메세지",
+                        fontSize = 15.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(15.dp))
         }
