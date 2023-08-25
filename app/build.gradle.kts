@@ -4,8 +4,6 @@ plugins {
     id("com.google.gms.google-services")
 }
 
-
-
 android {
     namespace = "com.example.intelteamproject"
     compileSdk = 34
@@ -50,7 +48,6 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-
 }
 
 dependencies {
@@ -66,6 +63,8 @@ dependencies {
     implementation("androidx.navigation:navigation-runtime-ktx:2.7.0")
     implementation("com.google.firebase:firebase-auth-ktx:22.1.1")
     implementation("com.google.firebase:firebase-ml-vision:24.1.0")
+    implementation("com.google.firebase:firebase-database-ktx:20.2.2")
+    implementation("com.google.android.gms:play-services-auth:20.6.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
