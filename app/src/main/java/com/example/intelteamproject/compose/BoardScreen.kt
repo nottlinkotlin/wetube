@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -20,14 +21,15 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BoardScreen(navController: NavController) {
-    KanbanBoard(navController)
+    KanbanBoard()
 }
 
 
 data class Task(val id: Int, val name: String)
 
+@Preview(showBackground = true)
 @Composable
-fun KanbanBoard(navController: NavController) {
+fun KanbanBoard() {
     val tasks = remember {
         mutableStateOf(
             listOf(
