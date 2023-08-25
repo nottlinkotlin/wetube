@@ -35,15 +35,20 @@ import androidx.navigation.NavController
 
 @Composable
 fun ManageScreen(navController: NavController) {
+    //QR코드 스캔 결과 저장해줌
         var code by remember {
             mutableStateOf("")
         }
+    //현재 context 가져옴
         val context = LocalContext.current
+    //현재 라이프사이클 오너 가져옴
         val lifecycleOwner = LocalLifecycleOwner.current
-        val cameraProviderFuture = remember {
+    //카메라 프로바이더의 미래 인스턴스를 가져옴
+    val cameraProviderFuture = remember {
             ProcessCameraProvider.getInstance(context)
 
         }
+    //카메라 권한 여부
         var hasCamPermission by remember {
             mutableStateOf(
                 ContextCompat.checkSelfPermission(
@@ -52,9 +57,11 @@ fun ManageScreen(navController: NavController) {
                 ) == PackageManager.PERMISSION_GRANTED
             )
         }
+    //카메라 권한을 요청하는 런처를 생성해줌
         val launcher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestPermission(),
             onResult = { granted ->
+                //권한 요청 결과가 저장됨
                 hasCamPermission = granted
             }
         )
@@ -65,9 +72,11 @@ fun ManageScreen(navController: NavController) {
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
+            //권한 있을 때 실행함
             if (hasCamPermission) {
                 AndroidView(
                     factory = { context ->
+                        //카메라 미리보기 화면 표시해줌
                         val previewView = PreviewView(context)
                         val preview = Preview.Builder().build()
 
