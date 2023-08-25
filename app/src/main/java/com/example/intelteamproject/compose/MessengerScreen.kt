@@ -2,6 +2,7 @@ package com.example.intelteamproject.compose
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,19 +14,30 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.intelteamproject.R
+import com.example.intelteamproject.Screen
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
 
 
@@ -65,6 +78,8 @@ fun MessengerScreen(navController: NavController) {
     ) {
         var clickContact by remember { mutableStateOf(true) }
         var clickDm by remember { mutableStateOf(false) }
+        var clickMessage by remember { mutableStateOf(false) }
+
 
         Column(
             modifier = Modifier.fillMaxSize()
@@ -126,7 +141,7 @@ fun MessengerScreen(navController: NavController) {
                 ContactView()
             }
             if (clickDm) {
-                MessageView()
+                MessengerView(navController)
             }
         }
     }
@@ -267,21 +282,22 @@ fun UserInfo(contact: Int) {
 }
 
 @Composable
-fun MessageView() {
+fun MessengerView(navController: NavController) {
     LazyColumn {
         items(10) { message ->
-            MessageList(message = message)
+            MessageList(message = message, navController)
         }
 
     }
 }
 
 @Composable
-fun MessageList(message: Int) {
+fun MessageList(message: Int, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp),
+            .height(80.dp)
+            .clickable { navController.navigate(Screen.Message.route) },
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -318,7 +334,9 @@ fun MessageList(message: Int) {
                         text = "이름${message}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.fillMaxWidth().height(25.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(25.dp)
                     )
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
@@ -341,3 +359,5 @@ fun MessageList(message: Int) {
         }
     }
 }
+
+
