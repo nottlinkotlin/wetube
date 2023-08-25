@@ -14,7 +14,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
@@ -28,6 +31,8 @@ import com.example.intelteamproject.compose.LoginScreen
 import com.example.intelteamproject.compose.MainScreen
 import com.example.intelteamproject.compose.ManageScreen
 import com.example.intelteamproject.compose.MessengerScreen
+import com.example.intelteamproject.compose.UserInfoScreen
+import com.example.intelteamproject.data.User
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -62,6 +67,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             IntelTeamProjectTheme {
+
 //                 A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -74,7 +80,7 @@ class MainActivity : ComponentActivity() {
                         if (user == null) {
                             Screen.Login.route
                         } else {
-                            Screen.Main.route
+                            Screen.UserInfo.route
                         }
                     }
                     val signInIntent = googleSignInClient.signInIntent
@@ -88,6 +94,7 @@ class MainActivity : ComponentActivity() {
                                 try {
                                     // Google SignIn was successful, authenticate with firebase
                                     val account = task.getResult(ApiException::class.java)!!
+
                                     firebaseAuthWithGoogle(account.idToken!!)
                                     navController.popBackStack()
                                     navController.navigate(Screen.Main.route)
@@ -107,6 +114,7 @@ class MainActivity : ComponentActivity() {
                                 launcher.launch(signInIntent)
                             }
                         }
+                        composable(Screen.UserInfo.route) { UserInfoScreen(navController) }
                         composable(Screen.Main.route) { MainScreen(navController) }
                         composable(Screen.Board.route) { BoardScreen(navController) }
                         composable(Screen.Messenger.route) { MessengerScreen(navController) }

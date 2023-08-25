@@ -10,6 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.example.intelteamproject.Screen
+import com.example.intelteamproject.data.User
+import com.example.intelteamproject.database.FirebaseAuthenticationManager
+import com.example.intelteamproject.database.FirestoreManager
 
 @Composable
 fun MainScreen(navController: NavController) {
