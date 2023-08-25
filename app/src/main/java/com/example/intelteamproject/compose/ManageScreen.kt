@@ -123,6 +123,7 @@ fun ManageScreen(navController: NavController) {
                         .fillMaxSize()
                         .padding(32.dp)
                 )
+                Text(text = "안녕")
 
             }
 
