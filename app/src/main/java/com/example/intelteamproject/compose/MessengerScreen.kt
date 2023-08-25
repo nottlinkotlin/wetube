@@ -93,7 +93,7 @@ fun MessengerScreen(navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = { navController.popBackStack()},
                     colors = IconButtonDefaults.iconButtonColors(Color.White)
                 ) {
                     Icon(
