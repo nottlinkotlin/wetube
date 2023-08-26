@@ -78,12 +78,11 @@ fun MessengerScreen(navController: NavController) {
     ) {
         var clickContact by remember { mutableStateOf(true) }
         var clickDm by remember { mutableStateOf(false) }
-        var clickMessage by remember { mutableStateOf(false) }
-
 
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
+            //상단 바
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -137,6 +136,7 @@ fun MessengerScreen(navController: NavController) {
                     }
                 }
             }
+            //상단 아이콘이 눌렸을 때 각각 해당하는 창을 띄움
             if (clickContact) {
                 ContactView()
             }
@@ -147,6 +147,7 @@ fun MessengerScreen(navController: NavController) {
     }
 }
 
+//연락처 창(처음 화면에 나올 창)
 @Composable
 fun ContactView() {
     Card(
@@ -217,6 +218,7 @@ fun ContactView() {
     }
 }
 
+//연락처 창에 띄울 다른 사용자들의 목록의 틀
 @Composable
 fun UserInfo(contact: Int) {
     Card(
@@ -281,6 +283,7 @@ fun UserInfo(contact: Int) {
     }
 }
 
+//메세지 모여있는 창
 @Composable
 fun MessengerView(navController: NavController) {
     LazyColumn {
@@ -291,12 +294,14 @@ fun MessengerView(navController: NavController) {
     }
 }
 
+//메세지 창에 띄울 메세지 목록의 틀
 @Composable
 fun MessageList(message: Int, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
+            //메세지 목록 중 하나를 눌렀을 때 해당 목록의 메세지 창으로 전환
             .clickable { navController.navigate(Screen.Message.route) },
         colors = CardDefaults.cardColors(
             containerColor = Color.White
