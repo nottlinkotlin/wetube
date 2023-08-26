@@ -6,4 +6,6 @@ sealed class Screen(val route: String) {
     object Board : Screen("board")
     object Messenger : Screen("messenger")
     object Manage : Screen("manage")
+
+    object Signature:Screen("signature")
 }

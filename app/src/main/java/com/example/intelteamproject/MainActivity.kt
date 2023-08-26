@@ -28,6 +28,7 @@ import com.example.intelteamproject.compose.LoginScreen
 import com.example.intelteamproject.compose.MainScreen
 import com.example.intelteamproject.compose.ManageScreen
 import com.example.intelteamproject.compose.MessengerScreen
+import com.example.intelteamproject.compose.SignatureScreen
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -111,6 +112,7 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Board.route) { BoardScreen(navController) }
                         composable(Screen.Messenger.route) { MessengerScreen(navController) }
                         composable(Screen.Manage.route) { ManageScreen(navController) }
+                        composable(Screen.Signature.route){ SignatureScreen(navController) }
                     }
                 }
             }

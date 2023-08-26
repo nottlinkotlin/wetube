@@ -86,6 +86,9 @@ dependencies {
     //Zxing
     implementation ("com.google.zxing:core:3.4.1")
 
+    //image
+    implementation ("io.coil-kt:coil-compose:1.4.0")
+
 
 
 

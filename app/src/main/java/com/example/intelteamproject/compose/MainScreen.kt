@@ -27,6 +27,10 @@ fun MainScreen(navController: NavController) {
             Button(onClick = { navController.navigate(Screen.Manage.route) }) {
                 Text(text = "근태 관리")
             }
+            Button(onClick = { navController.navigate(Screen.Signing.route)}) {
+                Text(text = "전자 서명")
+
+            }
         }
     }
 }
