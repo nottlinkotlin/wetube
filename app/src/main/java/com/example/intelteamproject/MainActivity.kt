@@ -33,6 +33,8 @@ import com.example.intelteamproject.compose.ManageScreen
 import com.example.intelteamproject.compose.MessengerScreen
 import com.example.intelteamproject.compose.UserInfoScreen
 import com.example.intelteamproject.data.User
+import com.example.intelteamproject.database.FirebaseAuthenticationManager
+import com.example.intelteamproject.database.FirestoreManager
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -42,13 +44,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
-
-    companion object {
-        const val RC_SIGN_IN = 100
-    }
 
     private lateinit var mAuth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
@@ -76,13 +75,24 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController() // navigation
                     //firebase authentication
                     val user: FirebaseUser? = mAuth.currentUser
+                    val authManager = FirebaseAuthenticationManager()
+                    val currentUser = authManager.getCurrentUser()
+                    val uid = currentUser?.uid
+                    val existingUser = uid?.let { FirestoreManager().getUser(it) }
+
                     val startDestination = remember {
                         if (user == null) {
                             Screen.Login.route
                         } else {
-                            Screen.UserInfo.route
+                            if (existingUser?.phone?.isBlank() == true) {
+                                Screen.UserInfo.route
+                            } else {
+                                Screen.Main.route
+                            }
                         }
+
                     }
+
                     val signInIntent = googleSignInClient.signInIntent
                     val launcher =
                         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
@@ -94,10 +104,10 @@ class MainActivity : ComponentActivity() {
                                 try {
                                     // Google SignIn was successful, authenticate with firebase
                                     val account = task.getResult(ApiException::class.java)!!
-
                                     firebaseAuthWithGoogle(account.idToken!!)
                                     navController.popBackStack()
-                                    navController.navigate(Screen.Main.route)
+                                    navController.navigate(Screen.Messenger.route)
+
                                 } catch (e: Exception) {
                                     // Google SignIn failed
                                     Log.d("SignIn", "로그인 실패")
@@ -115,7 +125,12 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                         composable(Screen.UserInfo.route) { UserInfoScreen(navController) }
-                        composable(Screen.Main.route) { MainScreen(navController) }
+                        composable(Screen.Main.route) {
+                            MainScreen(
+                                navController,
+                                onSignOutClicked = { signOut(navController) }
+                            )
+                        }
                         composable(Screen.Board.route) { BoardScreen(navController) }
                         composable(Screen.Messenger.route) { MessengerScreen(navController) }
                         composable(Screen.Manage.route) { ManageScreen(navController) }
@@ -161,4 +176,5 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 
