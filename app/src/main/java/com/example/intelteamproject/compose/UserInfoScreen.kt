@@ -20,10 +20,13 @@ import com.example.intelteamproject.Screen
 import com.example.intelteamproject.data.User
 import com.example.intelteamproject.database.FirebaseAuthenticationManager
 import com.example.intelteamproject.database.FirestoreManager
+import com.google.firebase.auth.FirebaseUser
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserInfoScreen(navController: NavController) {
+    Text(text = "dddddddddddddd")
     // 구글 연동 이름, 이메일 가져오기
     val authManager = FirebaseAuthenticationManager()
     val firestoreManager = FirestoreManager()
@@ -58,11 +61,11 @@ fun UserInfoScreen(navController: NavController) {
 
                 OutlinedTextField(value = name, onValueChange = { name = it })
                 OutlinedTextField(value = email, onValueChange = { email = it })
-                OutlinedTextField(value = phone?: "", onValueChange = { phone = it })
-                OutlinedTextField(value = position?: "", onValueChange = { position = it })
+                OutlinedTextField(value = phone, onValueChange = { phone = it })
+                OutlinedTextField(value = position, onValueChange = { position = it })
 
                 val saveButtonEnabled =
-                    !name.isBlank() && !email.isBlank() && !phone.isBlank() && !position.isBlank()
+                    name.isNotBlank() && email.isNotBlank() && phone.isNotBlank() && position.isNotBlank()
                 Button(
                     onClick = {
                         val user = User(

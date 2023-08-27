@@ -75,20 +75,12 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController() // navigation
                     //firebase authentication
                     val user: FirebaseUser? = mAuth.currentUser
-                    val authManager = FirebaseAuthenticationManager()
-                    val currentUser = authManager.getCurrentUser()
-                    val uid = currentUser?.uid
-                    val existingUser = uid?.let { FirestoreManager().getUser(it) }
 
                     val startDestination = remember {
                         if (user == null) {
                             Screen.Login.route
                         } else {
-                            if (existingUser?.phone?.isBlank() == true) {
-                                Screen.UserInfo.route
-                            } else {
-                                Screen.Main.route
-                            }
+                            Screen.Main.route
                         }
 
                     }
@@ -106,7 +98,7 @@ class MainActivity : ComponentActivity() {
                                     val account = task.getResult(ApiException::class.java)!!
                                     firebaseAuthWithGoogle(account.idToken!!)
                                     navController.popBackStack()
-                                    navController.navigate(Screen.Messenger.route)
+                                    navController.navigate(Screen.UserInfo.route)
 
                                 } catch (e: Exception) {
                                     // Google SignIn failed
