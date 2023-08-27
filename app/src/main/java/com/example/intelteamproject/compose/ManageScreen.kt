@@ -46,6 +46,8 @@ import com.google.android.gms.tasks.Task
 fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
 
 
+
+
     //QR코드 스캔 결과 저장해줌
         var code by remember {
             mutableStateOf("")
