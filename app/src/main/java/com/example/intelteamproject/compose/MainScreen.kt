@@ -10,9 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.example.intelteamproject.Screen
+import com.example.intelteamproject.data.User
+import com.example.intelteamproject.database.FirebaseAuthenticationManager
+import com.example.intelteamproject.database.FirestoreManager
 
 @Composable
-fun MainScreen(navController: NavController) {
+fun MainScreen(navController: NavController, onSignOutClicked: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -26,6 +29,12 @@ fun MainScreen(navController: NavController) {
             }
             Button(onClick = { navController.navigate(Screen.Manage.route) }) {
                 Text(text = "근태 관리")
+            }
+            Button(onClick = { navController.navigate(Screen.UserInfo.route) }) {
+                Text(text = "사용자 정보 수정")
+            }
+            Button(onClick = { onSignOutClicked() }) {
+                Text(text = "로그아웃")
             }
         }
     }

@@ -14,7 +14,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
@@ -29,6 +32,10 @@ import com.example.intelteamproject.compose.MainScreen
 import com.example.intelteamproject.compose.ManageScreen
 import com.example.intelteamproject.compose.MessageScreen
 import com.example.intelteamproject.compose.MessengerScreen
+import com.example.intelteamproject.compose.UserInfoScreen
+import com.example.intelteamproject.data.User
+import com.example.intelteamproject.database.FirebaseAuthenticationManager
+import com.example.intelteamproject.database.FirestoreManager
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -38,13 +45,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
-
-    companion object {
-        const val RC_SIGN_IN = 100
-    }
 
     private lateinit var mAuth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
@@ -63,6 +67,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             IntelTeamProjectTheme {
+
 //                 A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -71,13 +76,16 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController() // navigation
                     //firebase authentication
                     val user: FirebaseUser? = mAuth.currentUser
+
                     val startDestination = remember {
                         if (user == null) {
                             Screen.Login.route
                         } else {
                             Screen.Main.route
                         }
+
                     }
+
                     val signInIntent = googleSignInClient.signInIntent
                     val launcher =
                         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
@@ -91,7 +99,8 @@ class MainActivity : ComponentActivity() {
                                     val account = task.getResult(ApiException::class.java)!!
                                     firebaseAuthWithGoogle(account.idToken!!)
                                     navController.popBackStack()
-                                    navController.navigate(Screen.Main.route)
+                                    navController.navigate(Screen.UserInfo.route)
+
                                 } catch (e: Exception) {
                                     // Google SignIn failed
                                     Log.d("SignIn", "로그인 실패")
@@ -108,7 +117,13 @@ class MainActivity : ComponentActivity() {
                                 launcher.launch(signInIntent)
                             }
                         }
-                        composable(Screen.Main.route) { MainScreen(navController) }
+                        composable(Screen.UserInfo.route) { UserInfoScreen(navController) }
+                        composable(Screen.Main.route) {
+                            MainScreen(
+                                navController,
+                                onSignOutClicked = { signOut(navController) }
+                            )
+                        }
                         composable(Screen.Board.route) { BoardScreen(navController) }
                         composable(Screen.Messenger.route) { MessengerScreen(navController) }
                         composable(Screen.Message.route) { MessageScreen(navController) }
@@ -155,4 +170,5 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 
