@@ -10,11 +10,11 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,7 +34,11 @@ import androidx.navigation.NavController
 
 
 @Composable
-fun ManageScreen(navController: NavController) {
+fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
+
+
+
+
     //QR코드 스캔 결과 저장해줌
         var code by remember {
             mutableStateOf("")
@@ -69,60 +73,134 @@ fun ManageScreen(navController: NavController) {
             launcher.launch(Manifest.permission.CAMERA)
         }
 
-        Column(
+
+
+        LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
-            //권한 있을 때 실행함
-            if (hasCamPermission) {
-                AndroidView(
-                    factory = { context ->
-                        //카메라 미리보기 화면 표시해줌
-                        val previewView = PreviewView(context)
-                        val preview = Preview.Builder().build()
 
-                        val selector = CameraSelector.Builder()
-                            .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-                            .build()
-                        preview.setSurfaceProvider(previewView.surfaceProvider)
-                        val imageAnalysis = ImageAnalysis.Builder()
-                            .setTargetResolution(
-                                Size(
-                                    previewView.width,
-                                    previewView.height
+            item {
+                if (hasCamPermission) {
+                    AndroidView(
+                        factory = { context ->
+                            //카메라 미리보기 화면 표시해줌
+                            val previewView = PreviewView(context)
+                            val preview = Preview.Builder().build()
+
+                            val selector = CameraSelector.Builder()
+                                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                                .build()
+                            preview.setSurfaceProvider(previewView.surfaceProvider)
+                            val imageAnalysis = ImageAnalysis.Builder()
+                                .setTargetResolution(
+                                    Size(
+                                        previewView.width,
+                                        previewView.height
+                                    )
                                 )
-                            )
-                            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                            .build()
-                        imageAnalysis.setAnalyzer(
-                            ContextCompat.getMainExecutor(context),
-                            QrCodeAnalyzer { result ->
-                                code = result
+                                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                                .build()
+                            imageAnalysis.setAnalyzer(
+                                ContextCompat.getMainExecutor(context),
+                                QrCodeAnalyzer { result ->
+                                    code = result
 
+                                }
+
+                            )
+                            try {
+                                cameraProviderFuture.get().bindToLifecycle(
+                                    lifecycleOwner,
+                                    selector,
+                                    preview,
+                                    imageAnalysis
+
+                                )
+                            } catch (e: Exception) {
+                                e.printStackTrace()
                             }
+                            previewView
+                        },
+                    )
+                    Text(
+                        text = code,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(32.dp)
+                    )
 
-                        )
-                        try {
-                            cameraProviderFuture.get().bindToLifecycle(
-                                lifecycleOwner,
-                                selector,
-                                preview,
-                                imageAnalysis
+                    Spacer(modifier = Modifier.padding(36.dp))
 
-                            )
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                        previewView
-                    },
-                )
-                Text(
-                    text = code,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(32.dp)
-                )
+                    Button(onClick = { fetchLocation()}) {
+                        Text(text = "위치")
+
+                    }
+
+
+                }
+
+            }
+            //권한 있을 때 실행함
+//            if (hasCamPermission) {
+//                AndroidView(
+//                    factory = { context ->
+//                        //카메라 미리보기 화면 표시해줌
+//                        val previewView = PreviewView(context)
+//                        val preview = Preview.Builder().build()
+//
+//                        val selector = CameraSelector.Builder()
+//                            .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+//                            .build()
+//                        preview.setSurfaceProvider(previewView.surfaceProvider)
+//                        val imageAnalysis = ImageAnalysis.Builder()
+//                            .setTargetResolution(
+//                                Size(
+//                                    previewView.width,
+//                                    previewView.height
+//                                )
+//                            )
+//                            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+//                            .build()
+//                        imageAnalysis.setAnalyzer(
+//                            ContextCompat.getMainExecutor(context),
+//                            QrCodeAnalyzer { result ->
+//                                code = result
+//
+//                            }
+//
+//                        )
+//                        try {
+//                            cameraProviderFuture.get().bindToLifecycle(
+//                                lifecycleOwner,
+//                                selector,
+//                                preview,
+//                                imageAnalysis
+//
+//                            )
+//                        } catch (e: Exception) {
+//                            e.printStackTrace()
+//                        }
+//                        previewView
+//                    },
+//                )
+//                Text(
+//                    text = code,
+//                    fontSize = 20.sp,
+//                    fontWeight = FontWeight.Bold,
+//                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .padding(32.dp)
+//                )
+//
+//                Spacer(modifier = Modifier.padding(36.dp))
+//
+//                Button(onClick = { fetchLocation()}) {
+//                    Text(text = "위치")
+//
+//                }
+
 
             }
 
@@ -132,5 +210,3 @@ fun ManageScreen(navController: NavController) {
 
 
 
-
-}
