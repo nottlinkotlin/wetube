@@ -92,7 +92,7 @@ fun MessengerScreen(navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    onClick = { navController.popBackStack()},
+                    onClick = { navController.popBackStack() },
                     colors = IconButtonDefaults.iconButtonColors(Color.White)
                 ) {
                     Icon(
@@ -185,10 +185,17 @@ fun ContactView() {
                 Row(
 
                 ) {
-                    Text(text = "이름", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "이름",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
-                Text(text = "소속", fontSize = 18.sp)
+                Text(
+                    text = "소속", fontSize = 18.sp, color = Color.Black
+                )
             }
             Column(
                 modifier = Modifier
@@ -256,10 +263,15 @@ fun UserInfo(contact: Int) {
                 Row(
 
                 ) {
-                    Text(text = "이름${contact}", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "이름${contact}",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
-                Text(text = "소속", fontSize = 15.sp)
+                Text(text = "소속", fontSize = 15.sp, color = Color.Black)
             }
             Column(
                 modifier = Modifier
@@ -341,7 +353,8 @@ fun MessageList(message: Int, navController: NavController) {
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(25.dp)
+                            .height(25.dp),
+                        color = Color.Black
                     )
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
@@ -356,7 +369,8 @@ fun MessageList(message: Int, navController: NavController) {
                         fontSize = 15.sp,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        color = Color.Black
                     )
                 }
             }
