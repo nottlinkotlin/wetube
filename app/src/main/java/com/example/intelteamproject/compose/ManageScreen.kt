@@ -2,7 +2,9 @@ package com.example.intelteamproject.compose
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.location.Location
 import android.util.Size
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -11,8 +13,10 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,12 +33,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.Task
 
 
 @Composable
-fun ManageScreen(navController: NavController) {
+fun ManageScreen(navController: NavController,fetchLocation: () -> Unit) {
+
+
     //QR코드 스캔 결과 저장해줌
         var code by remember {
             mutableStateOf("")
@@ -123,15 +133,18 @@ fun ManageScreen(navController: NavController) {
                         .fillMaxSize()
                         .padding(32.dp)
                 )
-                Text(text = "안녕")
+
+                Spacer(modifier = Modifier.padding(12.dp))
+                Button(onClick = { fetchLocation()}) {
+                    Text(text = "위치")
+
+                }
 
             }
 
 
         }
 
-
-
-
-
 }
+
+

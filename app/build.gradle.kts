@@ -86,6 +86,12 @@ dependencies {
     //Zxing
     implementation ("com.google.zxing:core:3.4.1")
 
+    //Ink
+    implementation ("com.google.mlkit:digital-ink-recognition:18.1.0")
+
+    //Location
+    implementation ("com.google.android.gms:play-services-location:18.0.0")
+
 
 
 
