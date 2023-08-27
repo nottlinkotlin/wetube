@@ -1,9 +1,7 @@
 package com.example.intelteamproject.compose
 
-import android.graphics.ImageDecoder
-import android.graphics.ImageDecoder.decodeBitmap
-import android.net.Uri
-import android.os.Build
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,12 +37,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,9 +49,13 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.intelteamproject.R
 import com.example.intelteamproject.Screen
+import com.example.intelteamproject.database.FirestoreManager
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.QueryDocumentSnapshot
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 
 //@Preview(showBackground = true)
@@ -79,11 +77,22 @@ fun MessengerScreen(navController: NavController) {
         var clickContact by remember { mutableStateOf(true) }
         var clickDm by remember { mutableStateOf(false) }
         val auth = FirebaseAuth.getInstance()
-        val user by rememberUpdatedState(newValue = auth.currentUser)
+        val currentUser by rememberUpdatedState(newValue = auth.currentUser)
+        val db = Firebase.firestore
+        val userList = remember { mutableListOf<QueryDocumentSnapshot>() }
+        db.collection("users").get()
+            .addOnSuccessListener { result ->
+                for (user in result) {
+                    userList.add(user)
+                }
+            }
+            .addOnFailureListener {
+                Log.w(TAG, "Error getting documents.", it)
+            }
 
 //        if (user != null) {
-        val name = user!!.displayName
-        val email = user!!.email
+//        val name = user!!.displayName
+//        val email = user!!.email
 //        val photoUrl = user!!.photoUrl
 //        } else {
 //            null
@@ -148,7 +157,7 @@ fun MessengerScreen(navController: NavController) {
             }
             //상단 아이콘이 눌렸을 때 각각 해당하는 창을 띄움
             if (clickContact) {
-                ContactView(user!!)
+                ContactView(currentUser!!, userList)
             }
             if (clickDm) {
                 MessengerView(navController)
@@ -159,8 +168,8 @@ fun MessengerScreen(navController: NavController) {
 
 //연락처 창(처음 화면에 나올 창)
 @Composable
-fun ContactView(user: FirebaseUser) {
-    val name = user!!.displayName
+fun ContactView(currentUser: FirebaseUser, userList: MutableList<QueryDocumentSnapshot>) {
+    val name = currentUser!!.displayName
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -228,7 +237,7 @@ fun ContactView(user: FirebaseUser) {
             Spacer(modifier = Modifier.width(15.dp))
         }
     }
-    val userList = remember { mutableListOf(user) }
+
 //    userList.add(user.providerData)
     LazyColumn {
         items(userList) { user ->
@@ -240,9 +249,9 @@ fun ContactView(user: FirebaseUser) {
 
 //연락처 창에 띄울 다른 사용자들의 목록의 틀
 @Composable
-fun UserInfo(user: FirebaseUser) {
-    val name = user!!.displayName
-    val email = user!!.email
+fun UserInfo(user: QueryDocumentSnapshot) {
+//    val name = user!!.displayName
+//    val email = user!!.email
 //    val photoUrl = user!!.photoUrl
 
     Card(
@@ -255,7 +264,7 @@ fun UserInfo(user: FirebaseUser) {
         shape = RectangleShape,
     ) {
         Row(
-            Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -293,14 +302,14 @@ fun UserInfo(user: FirebaseUser) {
                 Row(
 
                 ) {
-                    if (name != null) {
+//                    if (name != null) {
                         Text(
-                            text = name,
+                            text = user.id,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black
                         )
-                    }
+//                    }
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
                 Text(text = "소속", fontSize = 15.sp, color = Color.Black)
