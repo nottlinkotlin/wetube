@@ -37,7 +37,12 @@ import com.example.intelteamproject.compose.BoardScreen
 import com.example.intelteamproject.compose.LoginScreen
 import com.example.intelteamproject.compose.MainScreen
 import com.example.intelteamproject.compose.ManageScreen
+import com.example.intelteamproject.compose.MessageScreen
 import com.example.intelteamproject.compose.MessengerScreen
+import com.example.intelteamproject.compose.UserInfoScreen
+import com.example.intelteamproject.data.User
+import com.example.intelteamproject.database.FirebaseAuthenticationManager
+import com.example.intelteamproject.database.FirestoreManager
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -49,6 +54,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
@@ -121,7 +127,13 @@ class MainActivity : ComponentActivity() {
                                 launcher.launch(signInIntent)
                             }
                         }
-                        composable(Screen.Main.route) { MainScreen(navController) }
+                        composable(Screen.UserInfo.route) { UserInfoScreen(navController) }
+                        composable(Screen.Main.route) {
+                            MainScreen(
+                                navController,
+                                onSignOutClicked = { signOut(navController) }
+                            )
+                        }
                         composable(Screen.Board.route) { BoardScreen(navController) }
                         composable(Screen.Messenger.route) { MessengerScreen(navController) }
                         composable(Screen.Manage.route) { ManageScreen(navController){fetchLocation()} }

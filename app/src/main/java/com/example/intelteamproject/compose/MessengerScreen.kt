@@ -1,7 +1,12 @@
 package com.example.intelteamproject.compose
 
+import android.graphics.ImageDecoder
+import android.graphics.ImageDecoder.decodeBitmap
+import android.net.Uri
+import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
@@ -28,23 +34,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.intelteamproject.R
+import com.example.intelteamproject.Screen
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 
 
 //@Preview(showBackground = true)
@@ -65,10 +78,21 @@ fun MessengerScreen(navController: NavController) {
     ) {
         var clickContact by remember { mutableStateOf(true) }
         var clickDm by remember { mutableStateOf(false) }
+        val auth = FirebaseAuth.getInstance()
+        val user by rememberUpdatedState(newValue = auth.currentUser)
+
+//        if (user != null) {
+        val name = user!!.displayName
+        val email = user!!.email
+//        val photoUrl = user!!.photoUrl
+//        } else {
+//            null
+//        }
 
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
+            //상단 바
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -78,7 +102,7 @@ fun MessengerScreen(navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = { navController.popBackStack() },
                     colors = IconButtonDefaults.iconButtonColors(Color.White)
                 ) {
                     Icon(
@@ -122,18 +146,21 @@ fun MessengerScreen(navController: NavController) {
                     }
                 }
             }
+            //상단 아이콘이 눌렸을 때 각각 해당하는 창을 띄움
             if (clickContact) {
-                ContactView()
+                ContactView(user!!)
             }
             if (clickDm) {
-                MessageView()
+                MessengerView(navController)
             }
         }
     }
 }
 
+//연락처 창(처음 화면에 나올 창)
 @Composable
-fun ContactView() {
+fun ContactView(user: FirebaseUser) {
+    val name = user!!.displayName
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -169,10 +196,17 @@ fun ContactView() {
                 Row(
 
                 ) {
-                    Text(text = "이름", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "$name",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
-                Text(text = "소속", fontSize = 18.sp)
+                Text(
+                    text = "소속", fontSize = 18.sp, color = Color.Black
+                )
             }
             Column(
                 modifier = Modifier
@@ -194,16 +228,23 @@ fun ContactView() {
             Spacer(modifier = Modifier.width(15.dp))
         }
     }
+    val userList = remember { mutableListOf(user) }
+//    userList.add(user.providerData)
     LazyColumn {
-        items(10) { contact ->
-            UserInfo(contact = contact)
+        items(userList) { user ->
+            UserInfo(user)
         }
 
     }
 }
 
+//연락처 창에 띄울 다른 사용자들의 목록의 틀
 @Composable
-fun UserInfo(contact: Int) {
+fun UserInfo(user: FirebaseUser) {
+    val name = user!!.displayName
+    val email = user!!.email
+//    val photoUrl = user!!.photoUrl
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -223,11 +264,24 @@ fun UserInfo(contact: Int) {
                 modifier = Modifier.size(60.dp),
                 shape = RoundedCornerShape(20.dp),
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
-                    contentDescription = "프로필 사진",
-                    contentScale = ContentScale.Crop,
-                )
+//                photoUrl?.let { imageUri ->
+//                    val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+//                        decodeBitmap(
+//                            ImageDecoder.createSource(
+//                                LocalContext.current.contentResolver,
+//                                photoUrl
+//                            )
+//                        )
+//                    } else {
+//                        null
+//                    }
+                    Image(
+//                        bitmap = bitmap!!.asImageBitmap(),
+                        painter = painterResource(id = R.drawable.ic_launcher_background),
+                        contentDescription = "프로필 사진",
+                        contentScale = ContentScale.Crop,
+                    )
+//                }
             }
             Spacer(modifier = Modifier.width(15.dp))
             Column(
@@ -239,10 +293,17 @@ fun UserInfo(contact: Int) {
                 Row(
 
                 ) {
-                    Text(text = "이름${contact}", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    if (name != null) {
+                        Text(
+                            text = name,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                    }
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
-                Text(text = "소속", fontSize = 15.sp)
+                Text(text = "소속", fontSize = 15.sp, color = Color.Black)
             }
             Column(
                 modifier = Modifier
@@ -266,22 +327,27 @@ fun UserInfo(contact: Int) {
     }
 }
 
+
+//메세지 모여있는 창
 @Composable
-fun MessageView() {
+fun MessengerView(navController: NavController) {
     LazyColumn {
         items(10) { message ->
-            MessageList(message = message)
+            MessageList(message = message, navController)
         }
 
     }
 }
 
+//메세지 창에 띄울 메세지 목록의 틀
 @Composable
-fun MessageList(message: Int) {
+fun MessageList(message: Int, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp),
+            .height(80.dp)
+            //메세지 목록 중 하나를 눌렀을 때 해당 목록의 메세지 창으로 전환
+            .clickable { navController.navigate(Screen.Message.route) },
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -318,7 +384,10 @@ fun MessageList(message: Int) {
                         text = "이름${message}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.fillMaxWidth().height(25.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(25.dp),
+                        color = Color.Black
                     )
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
@@ -333,7 +402,8 @@ fun MessageList(message: Int) {
                         fontSize = 15.sp,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        color = Color.Black
                     )
                 }
             }
@@ -341,3 +411,5 @@ fun MessageList(message: Int) {
         }
     }
 }
+
+
