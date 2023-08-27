@@ -8,6 +8,6 @@ sealed class Screen(val route: String) {
     object Messenger : Screen("messenger")
     object Message : Screen("message")
     object Manage : Screen("manage")
-
     object FeedBack:Screen("feedback")
+    object Calendar:Screen("calendar")
 }

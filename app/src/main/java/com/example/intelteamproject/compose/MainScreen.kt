@@ -18,6 +18,9 @@ fun MainScreen(navController: NavController, onSignOutClicked: () -> Unit) {
         color = MaterialTheme.colorScheme.background
     ) {
         Column {
+            Button(onClick = { navController.navigate(Screen.Calendar.route) }) {
+                Text(text = "캘린더")
+            }
             Button(onClick = { navController.navigate(Screen.Board.route) }) {
                 Text(text = "칸반 보드")
             }
