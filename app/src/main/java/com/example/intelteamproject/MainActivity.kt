@@ -135,6 +135,7 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Screen.Board.route) { BoardScreen(navController) }
                         composable(Screen.Messenger.route) { MessengerScreen(navController) }
+                        composable(Screen.Message.route) { MessageScreen(navController) }
                         composable(Screen.Manage.route) { ManageScreen(navController){fetchLocation()} }
                         composable(Screen.FeedBack.route){ FeedbackScreen(navController)}
                     }
