@@ -32,6 +32,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.intelteamproject.compose.BoardScreen
+import com.example.intelteamproject.compose.CommunityScreen
 import com.example.intelteamproject.compose.FeedbackScreen
 import com.example.intelteamproject.compose.LoginScreen
 import com.example.intelteamproject.compose.MainScreen
@@ -48,6 +49,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -58,16 +60,14 @@ import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
 
-    lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-
-    companion object {
-        const val RC_SIGN_IN = 100
-    }
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     private lateinit var mAuth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
         mAuth = FirebaseAuth.getInstance()
         // 구글 로그인 구현
@@ -135,8 +135,10 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Screen.Board.route) { BoardScreen(navController) }
                         composable(Screen.Messenger.route) { MessengerScreen(navController) }
+                        composable(Screen.Message.route) { MessageScreen(navController) }
                         composable(Screen.Manage.route) { ManageScreen(navController){fetchLocation()} }
                         composable(Screen.FeedBack.route){ FeedbackScreen(navController)}
+                        composable(Screen.Community.route){ CommunityScreen(navController)}
                     }
                 }
             }

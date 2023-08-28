@@ -10,36 +10,123 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.example.intelteamproject.Screen
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.ui.Alignment
 
 @Composable
 fun MainScreen(navController: NavController, onSignOutClicked: () -> Unit) {
+    val authManager = FirebaseAuthenticationManager()
+    val currentUser = authManager.getCurrentUser()
+    val profileImageUrl = currentUser?.photoUrl.toString()
+
+    val cardList = listOf(
+        GridItemData(Screen.Board.route, Icons.Default.DateRange, "칸반 보드"),
+        GridItemData(Screen.FeedBack.route, Icons.Default.Send, "피드백"),
+        GridItemData(Screen.Messenger.route, Icons.Default.MailOutline, "메신저"),
+        GridItemData(Screen.Message.route, Icons.Default.Email, "메시지"),
+        GridItemData(Screen.Manage.route, Icons.Default.AccountBox, "근태 관리"),
+        GridItemData(Screen.UserInfo.route, Icons.Default.Face, "사용자 정보 수정"),
+    )
+
     Surface(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
         color = MaterialTheme.colorScheme.background
     ) {
-        Column {
-            Button(onClick = { navController.navigate(Screen.Calendar.route) }) {
-                Text(text = "캘린더")
+        Box {
+            Box(modifier = Modifier.align(Alignment.TopEnd)) {
+                AsyncImage(
+                    model = profileImageUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clickable { navController.navigate(Screen.UserInfo.route) }
+                        .clip(shape = CircleShape)
+                )
             }
-            Button(onClick = { navController.navigate(Screen.Board.route) }) {
-                Text(text = "칸반 보드")
+            Column {
+                Text(
+                    text = "HOME",
+                    fontSize = 24.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp),
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2), // 그리드 열의 개수를 설정
+                    modifier = Modifier.fillMaxSize() // 화면을 꽉 채우도록 설정
+                ) {
+                    items(cardList.size) { index ->
+                        GridItem(cardList[index], navController)
+                    }
+                    item {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .size(150.dp)
+                                .padding(2.dp)
+                                .clickable { onSignOutClicked() },
+                            shape = RectangleShape,
+                            colors = CardDefaults.cardColors(containerColor = Color.White)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ExitToApp,
+                                        contentDescription = "SignOut",
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                    Text(text = "로그 아웃")
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            Button(onClick = { navController.navigate(Screen.Messenger.route) }) {
-                Text(text = "메신저")
-            }
-            Button(onClick = { navController.navigate(Screen.Manage.route) }) {
-                Text(text = "근태 관리")
-            }
-            Button(onClick = { navController.navigate(Screen.UserInfo.route) }) {
-                Text(text = "사용자 정보 수정")
-            }
-            Button(onClick = { onSignOutClicked() }) {
-                Text(text = "로그아웃")
-            }
-            Button(onClick = { navController.navigate(Screen.FeedBack.route) }) {
-                Text(text = "피드백")
-            }
+        }
+    }
+}
 
+data class GridItemData(val screen: String, val icon: ImageVector, val text: String)
+
+@Composable
+fun GridItem(data: GridItemData, navController: NavController) {
+    Card(
+        modifier = Modifier
+            .fillMaxSize()
+            .size(150.dp)
+            .padding(2.dp)
+            .clickable { navController.navigate(data.screen) },
+        shape = RectangleShape
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = data.icon, contentDescription = "$data.icon",
+                    modifier = Modifier.size(32.dp)
+                )
+                Text(text = data.text)
+            }
         }
     }
 }
