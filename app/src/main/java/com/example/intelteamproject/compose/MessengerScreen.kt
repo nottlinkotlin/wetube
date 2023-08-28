@@ -95,7 +95,7 @@ fun MessengerScreen(navController: NavController) {
     ) {
         var clickContact by remember { mutableStateOf(true) }
         var clickDm by remember { mutableStateOf(false) }
-        val firestoreManager = FirestoreManager()
+//        val firestoreManager = FirestoreManager()
         val authManager = FirebaseAuthenticationManager()
         val currentUser = authManager.getCurrentUser()
         val uid = currentUser?.uid
@@ -107,39 +107,43 @@ fun MessengerScreen(navController: NavController) {
         val MyInfoList = remember { mutableStateListOf<String>() }
 
 
-        usersCollection.document(uid!!).get()
-            .addOnSuccessListener { documentSnapshot ->
-                val user = documentSnapshot.toObject(User::class.java)
-                MyInfoList.add(user!!.name)
-                MyInfoList.add(user!!.phone)
-                MyInfoList.add(user!!.photoUrl)
-                MyInfoList.add(user!!.position)
-            }
-            .addOnFailureListener { exception ->
-            }
+//        usersCollection.document(uid!!).get()
+//            .addOnSuccessListener { documentSnapshot ->
+//                val user = documentSnapshot.toObject(User::class.java)
+//                MyInfoList.add(user!!.name)
+//                MyInfoList.add(user.phone)
+//                MyInfoList.add(user.photoUrl)
+//                MyInfoList.add(user.position)
+//            }
+//            .addOnFailureListener { exception ->
+//            }
 
 
+        LaunchedEffect(Unit) {
+            usersCollection.get()
+                .addOnSuccessListener { querySnapshot ->
+                    for (document in querySnapshot) {
+                        val userName = document.getString("name")
+                        val userPhone = document.getString("phone")
+                        val userPhotoUrl = document.getString("photoUrl")
+                        val userPosition = document.getString("position")
+                        val userUid = document.getString("uid")
 
-        usersCollection.get()
-            .addOnSuccessListener { querySnapshot ->
-                for (document in querySnapshot) {
-                    val userName = document.getString("name")
-                    val userPhone = document.getString("phone")
-                    val userPhotoUrl = document.getString("photoUrl")
-                    val userPosition = document.getString("position")
+                        val messengerUser = MessengerUser(
+                            name = userName!!,
+                            phone = userPhone!!,
+                            photoUrl = userPhotoUrl!!,
+                            position = userPosition!!,
+                            uid = userUid!!
 
-                    val messengerUser = MessengerUser(
-                        name = userName!!,
-                        phone = userPhone!!,
-                        photoUrl = userPhotoUrl!!,
-                        position = userPosition!!
-                    )
-                    userList.add(messengerUser)
+                        )
+                        userList.add(messengerUser)
+                    }
                 }
-            }
-            .addOnFailureListener { exception ->
-                println("Error getting documents: $exception")
-            }
+                .addOnFailureListener { exception ->
+                    println("Error getting documents: $exception")
+                }
+        }
 
         Column(
             modifier = Modifier.fillMaxSize()
@@ -200,7 +204,7 @@ fun MessengerScreen(navController: NavController) {
             }
             //상단 아이콘이 눌렸을 때 각각 해당하는 창을 띄움
             if (clickContact) {
-                ContactView(MyInfoList, userList, navController)
+                ContactView(currentUser!!, MyInfoList, userList, navController)
             }
             if (clickDm) {
                 MessengerView(navController)
@@ -212,11 +216,12 @@ fun MessengerScreen(navController: NavController) {
 //연락처 창(처음 화면에 나올 창)
 @Composable
 fun ContactView(
+    currentUser: FirebaseUser,
     list: MutableList<String>,
     userList: MutableList<MessengerUser>,
     navController: NavController
 ) {
-    var clickUser by remember { mutableStateOf<String>("") }
+    var clickUser by remember { mutableStateOf<String?>(null) }
 
     Card(
         modifier = Modifier
@@ -238,7 +243,7 @@ fun ContactView(
                 shape = RoundedCornerShape(20.dp),
             ) {
                 AsyncImage(
-                    model = list[2], contentDescription = null,
+                    model = currentUser.photoUrl.toString(), contentDescription = null,
                     contentScale = ContentScale.Crop
                 )
             }
@@ -253,7 +258,7 @@ fun ContactView(
 
                 ) {
                     Text(
-                        text = list[0],
+                        text = currentUser.displayName!!,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
@@ -261,7 +266,7 @@ fun ContactView(
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
                 Text(
-                    text = list[3], fontSize = 18.sp, color = Color.Black
+                    text = "position", fontSize = 18.sp, color = Color.Black
                 )
             }
             Column(
@@ -270,7 +275,7 @@ fun ContactView(
                     .width(130.dp), verticalArrangement = Arrangement.Bottom
             ) {
                 Text(
-                    text = list[1],
+                    text = "phone",
                     color = Color(0xff74787D),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Light,
@@ -288,16 +293,18 @@ fun ContactView(
 //    userList.add(user.providerData)
     LazyColumn {
         items(userList) { user ->
-            ContactCard(user) {
-                clickUser = it
+            if (user.uid != currentUser.uid) {
+                ContactCard(user) {
+                    clickUser = it
+                }
             }
         }
     }
-//    clickUser?.let { user ->
-//        SendMessage(user, navController) {
-//            clickUser = null
-//        }
-//    }
+    clickUser?.let { user ->
+        SendMessage(user, navController) {
+            clickUser = null
+        }
+    }
 }
 
 //연락처 창에 띄울 다른 사용자들의 목록의 틀
@@ -475,13 +482,13 @@ fun MessageList(message: Int, navController: NavController) {
 
 //@Preview
 @Composable
-fun SendMessage(user: MessengerUser, navController: NavController, onDissmiss: () -> Unit) {
+fun SendMessage(user: String, navController: NavController, onDissmiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = { onDissmiss() },
         confirmButton = { /*TODO*/ },
         title = {
             Text(
-                text = user.name,
+                text = user,
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
                 color = Color.Black
