@@ -56,6 +56,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
@@ -107,9 +108,10 @@ class MainActivity : ComponentActivity() {
                                 try {
                                     // Google SignIn was successful, authenticate with firebase
                                     val account = task.getResult(ApiException::class.java)!!
-                                    firebaseAuthWithGoogle(account.idToken!!)
-                                    navController.popBackStack()
-                                    navController.navigate(Screen.Main.route)
+                                    firebaseAuthWithGoogle(
+                                        account.idToken!!,
+                                        navController = navController
+                                    )
                                 } catch (e: Exception) {
                                     // Google SignIn failed
                                     Log.d("SignIn", "로그인 실패")
@@ -145,12 +147,17 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun firebaseAuthWithGoogle(idToken: String) {
+    private fun firebaseAuthWithGoogle(idToken: String, navController: NavController) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         mAuth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     // SignIn Successful
+                    val currentUser = mAuth.currentUser
+                    currentUser?.let {
+                        navController.popBackStack()
+                        navController.navigate(Screen.UserInfo.route)
+                    }
                     Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
                 } else {
                     // SignIn Failed
@@ -160,6 +167,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun signOut(navController: NavController) {
+        val db = Firebase.firestore
+        val authManager = FirebaseAuthenticationManager()
+        val currentUser = authManager.getCurrentUser()
+        val uid = currentUser?.uid
+        val docRef = uid?.let { db.collection("users").document(it) }
+
         // get the google account
         val googleSignInClient: GoogleSignInClient
 
@@ -174,7 +187,14 @@ class MainActivity : ComponentActivity() {
         // Sign Out of all accounts
         mAuth.signOut()
         googleSignInClient.signOut().addOnSuccessListener {
-            Toast.makeText(this, "로그아웃 성공", Toast.LENGTH_SHORT).show()
+            docRef?.delete()
+                ?.addOnSuccessListener {
+                    Toast.makeText(this, "로그아웃 성공", Toast.LENGTH_SHORT).show()
+                }
+                ?.addOnFailureListener { e ->
+                    // 삭제 실패 시 동작
+                    Log.e("Firestore", "Error deleting document", e)
+                }
             navController.navigate(Screen.Login.route)
         }.addOnFailureListener {
             Toast.makeText(this, "로그아웃 실패", Toast.LENGTH_SHORT).show()
@@ -185,20 +205,28 @@ class MainActivity : ComponentActivity() {
         val task: Task<Location> = fusedLocationProviderClient.lastLocation
         if (ActivityCompat.checkSelfPermission(
                 this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
+                Manifest.permission.ACCESS_FINE_LOCATION
             )
             != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
                 this,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
+                Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
 
-        ){
-            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),101)
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                101
+            )
             return
         }
         task.addOnSuccessListener {
-            if(it!=null){
-                Toast.makeText(applicationContext, "${it.latitude} ${it.longitude},",Toast.LENGTH_LONG).show()
+            if (it != null) {
+                Toast.makeText(
+                    applicationContext,
+                    "${it.latitude} ${it.longitude},",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
