@@ -10,4 +10,7 @@ sealed class Screen(val route: String) {
     object Manage : Screen("manage")
 
     object FeedBack:Screen("feedback")
+    object Calendar:Screen("calendar")
+
+    object Community:Screen("community")
 }
