@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -58,7 +57,7 @@ fun FeedbackScreen(navController: NavController) {
                     link = "https://www.youtube.com/watch?v=flTns9o8OWA",
                     title = "남매 반드시 발생하는 상황 월드컵 (with 악뮤)",
                     date = "날짜: 2023-08-26",
-                    likes = 8200,
+                    likes = 820,
                     dislikes = 4000,
                     comments = 438
                 )
@@ -66,7 +65,7 @@ fun FeedbackScreen(navController: NavController) {
                     link = "https://www.youtube.com/watch?v=cC8EolQTzbE",
                     title = "악동뮤지션과 악질뮤지션",
                     date = "날짜: 2023-08-25",
-                    likes = 12000,
+                    likes = 1200,
                     dislikes = 2000,
                     comments = 736
                 )
@@ -74,7 +73,7 @@ fun FeedbackScreen(navController: NavController) {
                     link = "https://www.youtube.com/watch?v=KiXR2UNDSxE",
                     title = "내 돈 주고 사긴 애매하지만 갖고 싶은 전자제품 월드컵",
                     date = "날짜: 2023-08-24",
-                    likes = 4900,
+                    likes = 490,
                     dislikes = 20,
                     comments = 242
                 )
@@ -82,7 +81,7 @@ fun FeedbackScreen(navController: NavController) {
                     link = "https://www.youtube.com/watch?v=nbZctrV7zXk",
                     title = "문서작업용 노트북 쇼핑",
                     date = "날짜: 2023-08-23",
-                    likes = 7900,
+                    likes = 790,
                     dislikes = 420,
                     comments = 489
                 )
@@ -90,7 +89,7 @@ fun FeedbackScreen(navController: NavController) {
                     link = "https://www.youtube.com/watch?v=CCAHa6Yv6bI",
                     title = "다른 제목",
                     date = "날짜: 2023-08-22",
-                    likes = 6900,
+                    likes = 690,
                     dislikes = 12,
                     comments = 412
                 )
@@ -98,7 +97,7 @@ fun FeedbackScreen(navController: NavController) {
                     link = "https://www.youtube.com/watch?v=7aFnrppCmrk",
                     title = "지구의 운명이 외계인의 손에 달려있다면",
                     date = "날짜: 2023-08-21",
-                    likes = 3400,
+                    likes = 340,
                     dislikes = 120,
                     comments = 331
                 )
@@ -120,7 +119,8 @@ fun Youtube(
 
     Box(
         modifier = Modifier
-            .wrapContentSize()
+            .fillMaxWidth()
+            .height(300.dp)
             .border(1.dp, Color.Black, shape = RoundedCornerShape(8.dp))
     ) {
         Row(
