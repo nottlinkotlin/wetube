@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -21,6 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -43,6 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -157,7 +162,7 @@ fun MessengerScreen(navController: NavController) {
             }
             //상단 아이콘이 눌렸을 때 각각 해당하는 창을 띄움
             if (clickContact) {
-                ContactView(currentUser!!, userList)
+                ContactView(currentUser!!, userList, navController)
             }
             if (clickDm) {
                 MessengerView(navController)
@@ -168,8 +173,10 @@ fun MessengerScreen(navController: NavController) {
 
 //연락처 창(처음 화면에 나올 창)
 @Composable
-fun ContactView(currentUser: FirebaseUser, userList: MutableList<QueryDocumentSnapshot>) {
-    val name = currentUser!!.displayName
+fun ContactView(currentUser: FirebaseUser, userList: MutableList<QueryDocumentSnapshot>, navController: NavController) {
+    val name = currentUser.displayName
+    var clickUser by remember { mutableStateOf<QueryDocumentSnapshot?>(null) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -241,15 +248,21 @@ fun ContactView(currentUser: FirebaseUser, userList: MutableList<QueryDocumentSn
 //    userList.add(user.providerData)
     LazyColumn {
         items(userList) { user ->
-            UserInfo(user)
+            UserInfo(user) {
+                clickUser = it
+            }
         }
-
+    }
+    clickUser?.let { user ->
+        SendMessage(user, navController) {
+            clickUser = null
+        }
     }
 }
 
 //연락처 창에 띄울 다른 사용자들의 목록의 틀
 @Composable
-fun UserInfo(user: QueryDocumentSnapshot) {
+fun UserInfo(user: QueryDocumentSnapshot, onClick: (QueryDocumentSnapshot) -> Unit) {
 //    val name = user!!.displayName
 //    val email = user!!.email
 //    val photoUrl = user!!.photoUrl
@@ -257,7 +270,8 @@ fun UserInfo(user: QueryDocumentSnapshot) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp),
+            .height(80.dp)
+            .clickable { onClick(user) },
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -303,12 +317,12 @@ fun UserInfo(user: QueryDocumentSnapshot) {
 
                 ) {
 //                    if (name != null) {
-                        Text(
-                            text = user.id,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black
-                        )
+                    Text(
+                        text = user.id,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
 //                    }
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
@@ -356,7 +370,7 @@ fun MessageList(message: Int, navController: NavController) {
             .fillMaxWidth()
             .height(80.dp)
             //메세지 목록 중 하나를 눌렀을 때 해당 목록의 메세지 창으로 전환
-            .clickable { navController.navigate(Screen.Message.route) },
+            .clickable { navController.navigate("message") },
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -419,6 +433,42 @@ fun MessageList(message: Int, navController: NavController) {
             Spacer(modifier = Modifier.width(15.dp))
         }
     }
+}
+
+//@Preview
+@Composable
+fun SendMessage(user: QueryDocumentSnapshot, navController: NavController, onDissmiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = { onDissmiss() },
+        confirmButton = { /*TODO*/ },
+        title = {
+            Text(
+                text = user.id,
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp,
+                color = Color.Black
+            )
+        },
+        text = {
+            Button(
+                onClick = { navController.navigate(Screen.Message.route) },
+                colors = ButtonDefaults.buttonColors(Color.White),
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(0.dp),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text(
+                    text = "메세지 보내기",
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 20.sp,
+                    color = Color.Black,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        containerColor = Color.White
+    )
 }
 
 

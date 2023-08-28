@@ -2,7 +2,6 @@ package com.example.intelteamproject.compose
 
 import android.content.ContentValues.TAG
 import android.util.Log
-import androidx.compose.animation.core.snap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,10 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -43,10 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -59,16 +52,17 @@ import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ServerValue
-import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
-import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.flow.callbackFlow
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessageScreen(navController: NavController) {
-    var inputConversation by remember { mutableStateOf("") }
+    var messages = remember { mutableStateListOf("") }
+    var newMessage by remember { mutableStateOf("") }
 //    var printConversation by remember { mutableStateOf("") }
 //    var messageList = remember { mutableStateListOf<Message>() }
     var displayedMessages by remember { mutableStateOf(emptyList<Message>()) }
@@ -81,7 +75,7 @@ fun MessageScreen(navController: NavController) {
     //메세지 저장할 공간
 //    val messageRef = database.getReference("messages")
     val messageRef = database.getReference("messages").child("message")
-    var isInitialDataLoaded by remember { mutableStateOf(false) }
+//    var isInitialDataLoaded by remember { mutableStateOf(false) }
     //messageList 안에 들어 있는 값을 Map으로 전환 후 저장
 //    val messageMap = messageList.mapIndexed { index, message ->
 //        index.toString() to message
@@ -169,7 +163,7 @@ fun MessageScreen(navController: NavController) {
             //다시 수정(저장된 메세지 중복 출력 이슈 => 원인은 자동 스크롤로 추정)
             val text = snapshot.child("text").getValue(String::class.java)
             val sender = snapshot.child("sender").getValue(String::class.java)
-            val timestamp = snapshot.child("timestamp").getValue(Any::class.java)
+            val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
 
             if (text != null && sender != null && timestamp != null) {
                 val message = Message(text, sender, timestamp)
@@ -195,17 +189,20 @@ fun MessageScreen(navController: NavController) {
             Log.w(TAG, "Failed to read value.", error.toException())
         }
     })
-    LaunchedEffect(displayedMessages) {
-        if (displayedMessages.isNotEmpty()) {
-            scrollState.animateScrollToItem(displayedMessages.size)
-        }
-    }
+//    //채팅방 들어갔을 때 자동으로 밑으로 스크롤되는 런처
+//    LaunchedEffect(displayedMessages) {
+//        if (displayedMessages.isNotEmpty()) {
+//            scrollState.animateScrollToItem(displayedMessages.size)
+//        }
+//    }
     //자동 스크롤되는 런처
-    LaunchedEffect(scrollToIndex) {
-        scrollToIndex?.let { index ->
+    LaunchedEffect(displayedMessages.size) {
+//        scrollToIndex = displayedMessages.size
+
+//        scrollToIndex?.let { index ->
 //            if (index >= 0 && index < displayedMessages.size) {
-                scrollState.animateScrollToItem(index)
-            }
+                scrollState.animateScrollToItem(displayedMessages.size)
+//            }
 //            scrollToIndex = null
 //        }
     }
@@ -223,8 +220,8 @@ fun MessageScreen(navController: NavController) {
                 .background(Color.White)
                 .padding(top = 60.dp, bottom = 55.dp)
         ) {
-            itemsIndexed(displayedMessages) { index, conversation ->
-                ConversationBox(index = index, message = conversation)
+            itemsIndexed(displayedMessages) { index, message ->
+                ConversationBox(index = index, message = message)
             }
         }
         Box(
@@ -294,8 +291,8 @@ fun MessageScreen(navController: NavController) {
                             )
                         }
                         TextField(
-                            value = inputConversation,
-                            onValueChange = { inputConversation = it },
+                            value = newMessage,
+                            onValueChange = { newMessage = it },
                             colors = TextFieldDefaults.textFieldColors(
                                 containerColor = Color.White,
                                 unfocusedIndicatorColor = Color.White,
@@ -307,20 +304,20 @@ fun MessageScreen(navController: NavController) {
                         )
                         IconButton(
                             onClick = {
-                                if (inputConversation.isNotBlank()) {
+                                if (newMessage.isNotBlank()) {
 //                                    printConversation = inputConversation
                                     val messageData = mapOf(
-                                        "text" to inputConversation,
+                                        "text" to newMessage,
                                         "sender" to "너",
                                         "timestamp" to ServerValue.TIMESTAMP
                                     )
                                     messageRef.push().setValue(messageData)
 
 //                                    messageList.add(inputConversation)
-                                    inputConversation = ""
+                                    newMessage = ""
 
 //                                    scrollToIndex = displayedMessages.size - 1
-                                    scrollToIndex = displayedMessages.size
+//                                    scrollToIndex = displayedMessages.size
                                 }
                             },
                             colors = IconButtonDefaults.iconButtonColors(Color.White),
@@ -341,21 +338,31 @@ fun MessageScreen(navController: NavController) {
 
 @Composable
 fun ConversationBox(index: Int?, message: Message?) {
-    message?.text?.let {
+    var timestampShow = SimpleDateFormat("yyyy년 MM월 dd일 E요일 hh:mm", Locale.getDefault()).format(Date(message?.timestamp as Long))
+
+
+    message.text?.let {
         if (index != null) {
             if (index % 2 == 0) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    Button(
-                        onClick = { /*TODO*/ },
-                        colors = ButtonDefaults.buttonColors(Color.LightGray),
-                        shape = RoundedCornerShape(topStart = 25.dp, bottomStart = 5.dp),
-                        contentPadding = PaddingValues(8.dp),
-                        modifier = Modifier.wrapContentSize()
-                    ) {
-                        Text(text = message.text, textAlign = TextAlign.Start, color = Color.White)
+                    Column {
+                        Button(
+                            onClick = { /*TODO*/ },
+                            colors = ButtonDefaults.buttonColors(Color.LightGray),
+                            shape = RoundedCornerShape(topStart = 25.dp, bottomStart = 5.dp),
+                            contentPadding = PaddingValues(8.dp),
+                            modifier = Modifier.wrapContentSize()
+                        ) {
+                            Text(
+                                text = message.text,
+                                textAlign = TextAlign.Start,
+                                color = Color.White
+                            )
+                        }
+                        Text(text = timestampShow)
                     }
                 }
             } else {
@@ -384,6 +391,7 @@ fun ConversationBox(index: Int?, message: Message?) {
                                 modifier = Modifier.wrapContentSize()
                             )
                         }
+                        Text(text = timestampShow)
                     }
                 }
             }
@@ -396,3 +404,4 @@ data class Message(
     val sender: String = "",
     val timestamp: Any? = null
 )
+
