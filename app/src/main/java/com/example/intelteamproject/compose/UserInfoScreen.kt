@@ -31,6 +31,7 @@ import com.example.intelteamproject.data.User
 import com.example.intelteamproject.database.FirebaseAuthenticationManager
 import com.example.intelteamproject.database.FirestoreManager
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.ktx.firestore
@@ -40,11 +41,11 @@ import com.google.firebase.ktx.Firebase
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserInfoScreen(navController: NavController) {
-    Text(text = "dddddddddddddd")
     // 구글 연동 이름, 이메일 가져오기
     val authManager = FirebaseAuthenticationManager()
     val firestoreManager = FirestoreManager()
 
+//    Firebase.auth.addAuthStateListener {  }
     val currentUser = authManager.getCurrentUser()
 
     if (currentUser != null) {

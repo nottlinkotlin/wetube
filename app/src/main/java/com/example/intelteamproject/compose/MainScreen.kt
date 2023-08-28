@@ -80,7 +80,7 @@ fun MainScreen(navController: NavController, onSignOutClicked: () -> Unit) {
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(50.dp)
+                        .size(40.dp)
                         .clickable { navController.navigate(Screen.UserInfo.route) }
                         .clip(shape = CircleShape)
                 )
