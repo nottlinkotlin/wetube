@@ -3,6 +3,7 @@ package com.example.intelteamproject.compose
 import android.Manifest
 import android.content.pm.PackageManager
 import android.util.Size
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -35,17 +36,28 @@ import com.example.intelteamproject.database.FirebaseAuthenticationManager
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.tasks.await
 
 
 @Composable
 fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
-
     val authManager = FirebaseAuthenticationManager()
     val currentUser = authManager.getCurrentUser()
     val uid = currentUser?.uid
 
     val db = Firebase.firestore
-    val uidDocument = uid?.let { db.collection("users").document(it) }
+    val uidDocumentRef = uid?.let { db.collection("users").document(it) }
+
+    var qrCode = ""
+
+    LaunchedEffect(Unit) {
+        val uidDocument = uidDocumentRef?.get()?.await()
+        val qr = uidDocument?.getString("qrCode")
+
+        if (qr != null) {
+            qrCode = qr
+        }
+    }
 
     //QR코드 스캔 결과 저장해줌
     var code by remember {
@@ -112,8 +124,17 @@ fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
                             ContextCompat.getMainExecutor(context),
                             QrCodeAnalyzer { result ->
                                 code = result
-                                if (result == "em3j5h6fk44b5") {
-//                                    uidDocument.("출근")
+                                if (result == qrCode) {
+                                    uidDocumentRef?.update("checked", true)
+                                        ?.addOnSuccessListener {
+                                            // 업데이트 성공 시 처리
+
+                                            Toast.makeText(context,"출석 완료 되었습니다.",Toast.LENGTH_LONG).show()
+                                        }
+                                        ?.addOnFailureListener { e ->
+                                            // 업데이트 실패 시 처리
+                                            Toast.makeText(context,"출석 실패 하였습니다.",Toast.LENGTH_LONG).show()
+                                        }
                                 }
                             }
                         )
@@ -131,14 +152,14 @@ fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
                         previewView
                     },
                 )
-                Text(
-                    text = code,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(32.dp)
-                )
+//                Text(
+//                    text = code,
+//                    fontSize = 20.sp,
+//                    fontWeight = FontWeight.Bold,
+//                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .padding(32.dp)
+//                )
 
                 Spacer(modifier = Modifier.padding(36.dp))
 
