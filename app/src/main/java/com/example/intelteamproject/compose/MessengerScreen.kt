@@ -33,7 +33,10 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -51,15 +54,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import com.example.intelteamproject.R
 import com.example.intelteamproject.Screen
+import com.example.intelteamproject.data.MessengerUser
+import com.example.intelteamproject.data.User
+import com.example.intelteamproject.database.FirebaseAuthenticationManager
 import com.example.intelteamproject.database.FirestoreManager
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.QueryDocumentSnapshot
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.tasks.await
 
 
 //@Preview(showBackground = true)
@@ -71,6 +80,12 @@ fun MessengerScreenView() {
     }
 }
 
+data class MyInfo(
+    val name: String,
+    val phone: String,
+    val photoUrl: String,
+    val position: String
+)
 
 @Composable
 fun MessengerScreen(navController: NavController) {
@@ -81,27 +96,50 @@ fun MessengerScreen(navController: NavController) {
         var clickContact by remember { mutableStateOf(true) }
         var clickDm by remember { mutableStateOf(false) }
         val firestoreManager = FirestoreManager()
-        val auth = FirebaseAuth.getInstance()
-        val currentUser= auth.currentUser
+        val authManager = FirebaseAuthenticationManager()
+        val currentUser = authManager.getCurrentUser()
+        val uid = currentUser?.uid
+
         val db = Firebase.firestore
-        val userList = remember { mutableListOf<QueryDocumentSnapshot>() }
-        db.collection("users").get()
-            .addOnSuccessListener { result ->
-                for (user in result) {
-                    userList.add(user)
-                }
+        val usersCollection = db.collection("users")
+        val userList = remember { mutableStateListOf<MessengerUser>() }
+
+        val MyInfoList = remember { mutableStateListOf<String>() }
+
+
+        usersCollection.document(uid!!).get()
+            .addOnSuccessListener { documentSnapshot ->
+                val user = documentSnapshot.toObject(User::class.java)
+                MyInfoList.add(user!!.name)
+                MyInfoList.add(user!!.phone)
+                MyInfoList.add(user!!.photoUrl)
+                MyInfoList.add(user!!.position)
             }
-            .addOnFailureListener {
-                Log.w(TAG, "Error getting documents.", it)
+            .addOnFailureListener { exception ->
             }
 
-//        if (user != null) {
-//        val name = user!!.displayName
-//        val email = user!!.email
-//        val photoUrl = user!!.photoUrl
-//        } else {
-//            null
-//        }
+
+
+        usersCollection.get()
+            .addOnSuccessListener { querySnapshot ->
+                for (document in querySnapshot) {
+                    val userName = document.getString("name")
+                    val userPhone = document.getString("phone")
+                    val userPhotoUrl = document.getString("photoUrl")
+                    val userPosition = document.getString("position")
+
+                    val messengerUser = MessengerUser(
+                        name = userName!!,
+                        phone = userPhone!!,
+                        photoUrl = userPhotoUrl!!,
+                        position = userPosition!!
+                    )
+                    userList.add(messengerUser)
+                }
+            }
+            .addOnFailureListener { exception ->
+                println("Error getting documents: $exception")
+            }
 
         Column(
             modifier = Modifier.fillMaxSize()
@@ -162,7 +200,7 @@ fun MessengerScreen(navController: NavController) {
             }
             //상단 아이콘이 눌렸을 때 각각 해당하는 창을 띄움
             if (clickContact) {
-                ContactView(firestoreManager, currentUser!!, userList, navController)
+                ContactView(MyInfoList, userList, navController)
             }
             if (clickDm) {
                 MessengerView(navController)
@@ -173,10 +211,12 @@ fun MessengerScreen(navController: NavController) {
 
 //연락처 창(처음 화면에 나올 창)
 @Composable
-fun ContactView(firestoreManager: FirestoreManager, currentUser: FirebaseUser, userList: MutableList<QueryDocumentSnapshot>, navController: NavController) {
-//    val name = currentUser.displayName
-    val myInfo = firestoreManager.getUser(currentUser.uid)
-    var clickUser by remember { mutableStateOf<QueryDocumentSnapshot?>(null) }
+fun ContactView(
+    list: MutableList<String>,
+    userList: MutableList<MessengerUser>,
+    navController: NavController
+) {
+    var clickUser by remember { mutableStateOf<String>("") }
 
     Card(
         modifier = Modifier
@@ -197,10 +237,9 @@ fun ContactView(firestoreManager: FirestoreManager, currentUser: FirebaseUser, u
                 modifier = Modifier.size(80.dp),
                 shape = RoundedCornerShape(20.dp),
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
-                    contentDescription = "프로필 사진",
-                    contentScale = ContentScale.Crop,
+                AsyncImage(
+                    model = list[2], contentDescription = null,
+                    contentScale = ContentScale.Crop
                 )
             }
             Spacer(modifier = Modifier.width(15.dp))
@@ -214,7 +253,7 @@ fun ContactView(firestoreManager: FirestoreManager, currentUser: FirebaseUser, u
 
                 ) {
                     Text(
-                        text = myInfo?.name ?: "정보 없음",
+                        text = list[0],
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
@@ -222,7 +261,7 @@ fun ContactView(firestoreManager: FirestoreManager, currentUser: FirebaseUser, u
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
                 Text(
-                    text = "소속", fontSize = 18.sp, color = Color.Black
+                    text = list[3], fontSize = 18.sp, color = Color.Black
                 )
             }
             Column(
@@ -231,7 +270,7 @@ fun ContactView(firestoreManager: FirestoreManager, currentUser: FirebaseUser, u
                     .width(130.dp), verticalArrangement = Arrangement.Bottom
             ) {
                 Text(
-                    text = "내선 번호",
+                    text = list[1],
                     color = Color(0xff74787D),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Light,
@@ -254,16 +293,16 @@ fun ContactView(firestoreManager: FirestoreManager, currentUser: FirebaseUser, u
             }
         }
     }
-    clickUser?.let { user ->
-        SendMessage(user, navController) {
-            clickUser = null
-        }
-    }
+//    clickUser?.let { user ->
+//        SendMessage(user, navController) {
+//            clickUser = null
+//        }
+//    }
 }
 
 //연락처 창에 띄울 다른 사용자들의 목록의 틀
 @Composable
-fun ContactCard(user: QueryDocumentSnapshot, onClick: (QueryDocumentSnapshot) -> Unit) {
+fun ContactCard(user: MessengerUser, onClick: (String) -> Unit) {
 //    val name = user!!.displayName
 //    val email = user!!.email
 //    val photoUrl = user!!.photoUrl
@@ -272,7 +311,7 @@ fun ContactCard(user: QueryDocumentSnapshot, onClick: (QueryDocumentSnapshot) ->
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
-            .clickable { onClick(user) },
+            .clickable { onClick(user.name) },
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -299,13 +338,11 @@ fun ContactCard(user: QueryDocumentSnapshot, onClick: (QueryDocumentSnapshot) ->
 //                    } else {
 //                        null
 //                    }
-                Image(
-//                        bitmap = bitmap!!.asImageBitmap(),
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
+                AsyncImage(
+                    model = user.photoUrl,
                     contentDescription = "프로필 사진",
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Crop
                 )
-//                }
             }
             Spacer(modifier = Modifier.width(15.dp))
             Column(
@@ -319,7 +356,7 @@ fun ContactCard(user: QueryDocumentSnapshot, onClick: (QueryDocumentSnapshot) ->
                 ) {
 //                    if (name != null) {
                     Text(
-                        text = user.id,
+                        text = user.name,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
@@ -327,7 +364,7 @@ fun ContactCard(user: QueryDocumentSnapshot, onClick: (QueryDocumentSnapshot) ->
 //                    }
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
-                Text(text = "소속", fontSize = 15.sp, color = Color.Black)
+                Text(text = user.position, fontSize = 15.sp, color = Color.Black)
             }
             Column(
                 modifier = Modifier
@@ -335,7 +372,7 @@ fun ContactCard(user: QueryDocumentSnapshot, onClick: (QueryDocumentSnapshot) ->
                     .width(150.dp), verticalArrangement = Arrangement.Bottom
             ) {
                 Text(
-                    text = "내선 번호",
+                    text = user.phone,
                     color = Color(0xff74787D),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Light,
@@ -438,13 +475,13 @@ fun MessageList(message: Int, navController: NavController) {
 
 //@Preview
 @Composable
-fun SendMessage(user: QueryDocumentSnapshot, navController: NavController, onDissmiss: () -> Unit) {
+fun SendMessage(user: MessengerUser, navController: NavController, onDissmiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = { onDissmiss() },
         confirmButton = { /*TODO*/ },
         title = {
             Text(
-                text = user.id,
+                text = user.name,
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
                 color = Color.Black

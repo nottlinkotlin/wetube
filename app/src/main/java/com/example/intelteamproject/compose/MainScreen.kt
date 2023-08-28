@@ -50,9 +50,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.intelteamproject.Screen
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.ui.Alignment
 import com.example.intelteamproject.data.User
 import com.example.intelteamproject.database.FirebaseAuthenticationManager
 import com.google.firebase.auth.FirebaseUser
