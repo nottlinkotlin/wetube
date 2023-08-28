@@ -47,14 +47,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.intelteamproject.R
 import com.example.intelteamproject.Screen
-import com.example.intelteamproject.database.FirestoreManager
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -248,7 +246,7 @@ fun ContactView(currentUser: FirebaseUser, userList: MutableList<QueryDocumentSn
 //    userList.add(user.providerData)
     LazyColumn {
         items(userList) { user ->
-            UserInfo(user) {
+            ContactCard(user) {
                 clickUser = it
             }
         }
@@ -262,7 +260,7 @@ fun ContactView(currentUser: FirebaseUser, userList: MutableList<QueryDocumentSn
 
 //연락처 창에 띄울 다른 사용자들의 목록의 틀
 @Composable
-fun UserInfo(user: QueryDocumentSnapshot, onClick: (QueryDocumentSnapshot) -> Unit) {
+fun ContactCard(user: QueryDocumentSnapshot, onClick: (QueryDocumentSnapshot) -> Unit) {
 //    val name = user!!.displayName
 //    val email = user!!.email
 //    val photoUrl = user!!.photoUrl

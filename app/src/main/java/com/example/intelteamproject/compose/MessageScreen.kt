@@ -74,7 +74,6 @@ fun MessageScreen(navController: NavController) {
 //    val messageRef = database.getReference("messages")
     val messageRef = remember { Firebase.database.getReference("messages").child("message") }
 //    //메세지 불러오는 함수
-    //LaunchedEffect로 묶으니깐 한번만 나옴 자판을 칠 때 다시 화면을 그리면서 다시 호출되고 거기서 뭔가 꼬인 것 같다고 강사님께서 알려주셨음.
     LaunchedEffect(Unit) {
         messageRef.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
