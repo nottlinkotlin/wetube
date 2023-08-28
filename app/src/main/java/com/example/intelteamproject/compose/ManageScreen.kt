@@ -31,14 +31,21 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import com.example.intelteamproject.database.FirebaseAuthenticationManager
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 
 @Composable
 fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
 
-    val database = FirebaseDatabase.getInstance().getReference("attendance")
+    val authManager = FirebaseAuthenticationManager()
+    val currentUser = authManager.getCurrentUser()
+    val uid = currentUser?.uid
 
+    val db = Firebase.firestore
+    val uidDocument = uid?.let { db.collection("users").document(it) }
 
     //QR코드 스캔 결과 저장해줌
     var code by remember {
@@ -105,9 +112,8 @@ fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
                             ContextCompat.getMainExecutor(context),
                             QrCodeAnalyzer { result ->
                                 code = result
-                                if (result == "특정 큐알코드 값") {
-                                    val userId = "유저 ID 혹은 식별자"  // 실제 애플리케이션에서는 적절한 사용자 ID를 가져와야 합니다.
-                                    database.child(userId).setValue("출근")
+                                if (result == "em3j5h6fk44b5") {
+                                    uidDocument.("출근")
                                 }
                             }
                         )
