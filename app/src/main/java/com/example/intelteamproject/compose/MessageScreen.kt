@@ -69,42 +69,44 @@ fun MessageScreen(navController: NavController) {
 //    var scrollToIndex by remember { mutableStateOf<Int?>(null) }
     val scrollState = rememberLazyListState()
     //firebase database에 연결 관련 변수
-    val database = Firebase.database
+//    val database = Firebase.database
     //메세지 저장할 공간
 //    val messageRef = database.getReference("messages")
-    val messageRef = database.getReference("messages").child("message")
+    val messageRef = remember { Firebase.database.getReference("messages").child("message") }
 //    //메세지 불러오는 함수
-    messageRef.addChildEventListener(object : ChildEventListener {
-        override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-            //다시 수정(저장된 메세지 중복 출력 이슈 => 원인은 자동 스크롤로 추정)
-            val text = snapshot.child("text").getValue(String::class.java)
-            val sender = snapshot.child("sender").getValue(String::class.java)
-            val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
+    LaunchedEffect(Unit) {
+        messageRef.addChildEventListener(object : ChildEventListener {
+            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                //다시 수정(저장된 메세지 중복 출력 이슈 => 원인은 자동 스크롤로 추정)
+                val text = snapshot.child("text").getValue(String::class.java)
+                val sender = snapshot.child("sender").getValue(String::class.java)
+                val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
 
-            if (text != null && sender != null && timestamp != null) {
-                val message = Message(text, sender, timestamp)
-                if (!displayedMessages.contains(message)) {
-                    displayedMessages += message
+                if (text != null && sender != null && timestamp != null) {
+                    val message = Message(text, sender, timestamp)
+                    if (!displayedMessages.contains(message)) {
+                        displayedMessages += message
+                    }
                 }
             }
-        }
 
-        override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
 //            TODO("Not yet implemented")
-        }
+            }
 
-        override fun onChildRemoved(snapshot: DataSnapshot) {
+            override fun onChildRemoved(snapshot: DataSnapshot) {
 //            TODO("Not yet implemented")
-        }
+            }
 
-        override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
 //            TODO("Not yet implemented")
-        }
+            }
 
-        override fun onCancelled(error: DatabaseError) {
-            Log.w(TAG, "Failed to read value.", error.toException())
-        }
-    })
+            override fun onCancelled(error: DatabaseError) {
+                Log.w(TAG, "Failed to read value.", error.toException())
+            }
+        })
+    }
     //자동 스크롤되는 런처
     LaunchedEffect(displayedMessages.size) {
 //        scrollToIndex = displayedMessages.size
