@@ -37,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -64,6 +65,7 @@ import java.util.Locale
 fun MessageScreen(navController: NavController) {
     var messages = remember { mutableStateListOf("") }
     var newMessage by remember { mutableStateOf("") }
+    var messagesMap = remember { mutableStateMapOf<String, MutableList<Message>>() }
 //    var messageList = remember { mutableStateListOf<Message>() }
     var displayedMessages by remember { mutableStateOf(emptyList<Message>()) }
     //메세지가 화면에 다 찼을 때, 새로운 메세지가 화면에 보일 수 있도록 위로 자동 스크롤 변수
@@ -72,19 +74,21 @@ fun MessageScreen(navController: NavController) {
     //firebase database에 연결 관련 변수
 //    val database = Firebase.database
     //메세지 저장할 공간
-//    val messageRef = database.getReference("messages")
-    val messageRef = remember { Firebase.database.getReference("messages").child("message") }
+    val messageRef = remember { Firebase.database.getReference("messages") }
+    val newMessageRef = messageRef.push()
+//    val messageRef = remember { Firebase.database.getReference("messages").child("message") }
 //    //메세지 불러오는 함수
     LaunchedEffect(Unit) {
         messageRef.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                //다시 수정(저장된 메세지 중복 출력 이슈 => 원인은 자동 스크롤로 추정)
                 val text = snapshot.child("text").getValue(String::class.java)
                 val sender = snapshot.child("sender").getValue(String::class.java)
+                val receiver = snapshot.child("receiver").getValue(String::class.java)
                 val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
 
-                if (text != null && sender != null && timestamp != null) {
-                    val message = Message(text, sender, timestamp)
+                if (text != null && sender != null && receiver != null && timestamp != null) {
+                    val message = Message(text, sender, receiver,timestamp)
+                    val roomMessages = messagesMap.getOrPut(newMessageRef.key!!) { mutableListOf() }
                     if (!displayedMessages.contains(message)) {
                         displayedMessages += message
                     }
@@ -219,9 +223,10 @@ fun MessageScreen(navController: NavController) {
                                     val messageData = mapOf(
                                         "text" to newMessage,
                                         "sender" to "너",
+                                        "receiver" to "나",
                                         "timestamp" to ServerValue.TIMESTAMP
                                     )
-                                    messageRef.push().setValue(messageData)
+                                    newMessageRef.push().setValue(messageData)
 
 //                                    messageList.add(inputConversation)
                                     newMessage = ""
@@ -328,6 +333,7 @@ fun ConversationBox(index: Int?, message: Message?) {
 data class Message(
     val text: String? = null,
     val sender: String = "",
+    val receiver: String = "",
     val timestamp: Any? = null
 )
 

@@ -53,6 +53,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.intelteamproject.R
 import com.example.intelteamproject.Screen
+import com.example.intelteamproject.database.FirestoreManager
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -79,8 +80,9 @@ fun MessengerScreen(navController: NavController) {
     ) {
         var clickContact by remember { mutableStateOf(true) }
         var clickDm by remember { mutableStateOf(false) }
+        val firestoreManager = FirestoreManager()
         val auth = FirebaseAuth.getInstance()
-        val currentUser by rememberUpdatedState(newValue = auth.currentUser)
+        val currentUser= auth.currentUser
         val db = Firebase.firestore
         val userList = remember { mutableListOf<QueryDocumentSnapshot>() }
         db.collection("users").get()
@@ -160,7 +162,7 @@ fun MessengerScreen(navController: NavController) {
             }
             //상단 아이콘이 눌렸을 때 각각 해당하는 창을 띄움
             if (clickContact) {
-                ContactView(currentUser!!, userList, navController)
+                ContactView(firestoreManager, currentUser!!, userList, navController)
             }
             if (clickDm) {
                 MessengerView(navController)
@@ -171,8 +173,9 @@ fun MessengerScreen(navController: NavController) {
 
 //연락처 창(처음 화면에 나올 창)
 @Composable
-fun ContactView(currentUser: FirebaseUser, userList: MutableList<QueryDocumentSnapshot>, navController: NavController) {
-    val name = currentUser.displayName
+fun ContactView(firestoreManager: FirestoreManager, currentUser: FirebaseUser, userList: MutableList<QueryDocumentSnapshot>, navController: NavController) {
+//    val name = currentUser.displayName
+    val myInfo = firestoreManager.getUser(currentUser.uid)
     var clickUser by remember { mutableStateOf<QueryDocumentSnapshot?>(null) }
 
     Card(
@@ -211,7 +214,7 @@ fun ContactView(currentUser: FirebaseUser, userList: MutableList<QueryDocumentSn
 
                 ) {
                     Text(
-                        text = "$name",
+                        text = myInfo?.name ?: "정보 없음",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
