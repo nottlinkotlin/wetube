@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -272,10 +273,16 @@ fun ConversationBox(index: Int?, message: Message?) {
                             Text(
                                 text = message.text,
                                 textAlign = TextAlign.Start,
-                                color = Color.White
+                                color = Color.White,
+                                fontSize = 16.sp
                             )
                         }
-                        Text(text = timestampShow)
+                        Text(
+                            text = timestampShow,
+                            fontWeight = FontWeight.Light,
+                            fontSize = 8.sp,
+                            color = Color.Gray
+                        )
                     }
                 }
             } else {
@@ -301,10 +308,16 @@ fun ConversationBox(index: Int?, message: Message?) {
                                 text = message.text,
                                 textAlign = TextAlign.Start,
                                 color = Color.White,
-                                modifier = Modifier.wrapContentSize()
+                                modifier = Modifier.wrapContentSize(),
+                                fontSize = 16.sp
                             )
                         }
-                        Text(text = timestampShow)
+                        Text(
+                            text = timestampShow,
+                            fontWeight = FontWeight.Light,
+                            fontSize = 8.sp,
+                            color = Color.Gray
+                        )
                     }
                 }
             }
