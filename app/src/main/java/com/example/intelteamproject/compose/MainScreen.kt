@@ -36,6 +36,9 @@ fun MainScreen(navController: NavController, onSignOutClicked: () -> Unit) {
             Button(onClick = { navController.navigate(Screen.FeedBack.route) }) {
                 Text(text = "피드백")
             }
+            Button(onClick = { navController.navigate(Screen.Community.route) }) {
+                Text(text = "커뮤니티")
+            }
 
         }
     }

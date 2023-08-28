@@ -32,6 +32,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.intelteamproject.compose.BoardScreen
+import com.example.intelteamproject.compose.CommunityScreen
 import com.example.intelteamproject.compose.FeedbackScreen
 import com.example.intelteamproject.compose.LoginScreen
 import com.example.intelteamproject.compose.MainScreen
@@ -137,6 +138,7 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Messenger.route) { MessengerScreen(navController) }
                         composable(Screen.Manage.route) { ManageScreen(navController){fetchLocation()} }
                         composable(Screen.FeedBack.route){ FeedbackScreen(navController)}
+                        composable(Screen.Community.route){ CommunityScreen(navController)}
                     }
                 }
             }
