@@ -243,7 +243,7 @@ fun MessageScreen(navController: NavController) {
 
 @Composable
 fun ConversationBox(index: Int?, message: Message?) {
-    var timestampShow = SimpleDateFormat(
+    val timestampShow = SimpleDateFormat(
         "yyyy년 MM월 dd일 E요일 hh:mm",
         Locale.getDefault()
     ).format(Date(message?.timestamp as Long))
@@ -256,7 +256,10 @@ fun ConversationBox(index: Int?, message: Message?) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    Column {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.End
+                    ) {
                         Button(
                             onClick = { /*TODO*/ },
                             colors = ButtonDefaults.buttonColors(Color.LightGray),
