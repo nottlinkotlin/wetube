@@ -275,12 +275,12 @@ fun UserInfo(user: FirebaseUser) {
 //                    } else {
 //                        null
 //                    }
-                    Image(
+                Image(
 //                        bitmap = bitmap!!.asImageBitmap(),
-                        painter = painterResource(id = R.drawable.ic_launcher_background),
-                        contentDescription = "프로필 사진",
-                        contentScale = ContentScale.Crop,
-                    )
+                    painter = painterResource(id = R.drawable.ic_launcher_background),
+                    contentDescription = "프로필 사진",
+                    contentScale = ContentScale.Crop,
+                )
 //                }
             }
             Spacer(modifier = Modifier.width(15.dp))
