@@ -1,5 +1,6 @@
 package com.example.intelteamproject.compose
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,17 +30,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -49,20 +45,21 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarScreen(navController: NavController) {
+    val selectedDate = remember { mutableStateOf(LocalDate.now()) }
     CalendarComposable(
-        selectedDate = LocalDate.now(), // 초기 선택된 날짜 설정
-        onDateSelected = { date, _ -> /* 날짜 선택 시 동작 수행 */ },
-        onPreviousMonthClick = { /* 이전 달로 이동 버튼 클릭 시 동작 수행 */ },
-        onNextMonthClick = { /* 다음 달로 이동 버튼 클릭 시 동작 수행 */ }
+        selectedDate = selectedDate.value,
+        onDateSelected = { date, index -> /* Handle date selected */ },
+        onPreviousMonthClick = {
+            selectedDate.value = selectedDate.value.minusMonths(1)
+        },
+        onNextMonthClick = {
+            selectedDate.value = selectedDate.value.plusMonths(1)
+        }
     )
-
 }
 
-
-// 달력구성 컴포저블
 @Composable
 fun CalendarComposable(
     modifier: Modifier = Modifier,
@@ -81,22 +78,17 @@ fun CalendarComposable(
             .padding(16.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
         ) {
             IconButton(onClick = onPreviousMonthClick) {
                 Icon(Icons.Default.ArrowBack, contentDescription = "Previous Month")
             }
 
-            val headerText =
-                selectedDate.format(DateTimeFormatter.ofPattern("yyyy년 M월"))
+            val headerText = selectedDate.format(DateTimeFormatter.ofPattern("yyyy년 M월"))
             Text(
-                text = headerText,
-                style = TextStyle(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                ),
-                modifier = Modifier.padding(vertical = 8.dp)
+                text = headerText, style = androidx.compose.ui.text.TextStyle(
+                    fontWeight = FontWeight.Bold, fontSize = 18.sp
+                ), modifier = Modifier.padding(vertical = 8.dp)
             )
 
             IconButton(onClick = onNextMonthClick) {
@@ -107,8 +99,7 @@ fun CalendarComposable(
         Spacer(modifier = Modifier.height(8.dp))
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = "일",
@@ -117,29 +108,19 @@ fun CalendarComposable(
                 textAlign = TextAlign.Center
             )
             Text(
-                text = "월",
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.Center
+                text = "월", modifier = Modifier.weight(1f), textAlign = TextAlign.Center
             )
             Text(
-                text = "화",
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.Center
+                text = "화", modifier = Modifier.weight(1f), textAlign = TextAlign.Center
             )
             Text(
-                text = "수",
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.Center
+                text = "수", modifier = Modifier.weight(1f), textAlign = TextAlign.Center
             )
             Text(
-                text = "목",
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.Center
+                text = "목", modifier = Modifier.weight(1f), textAlign = TextAlign.Center
             )
             Text(
-                text = "금",
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.Center
+                text = "금", modifier = Modifier.weight(1f), textAlign = TextAlign.Center
             )
             Text(
                 text = "토",
@@ -171,19 +152,15 @@ fun CalendarComposable(
 
                 Divider()
                 CalendarDay(
-                    date = date,
-                    isSelected = isSelected,
-                    onDateSelected = { selectedDate ->
+                    date = date, isSelected = isSelected, onDateSelected = { selectedDate ->
                         selectedDayIndex = index
                         showDialog = true
-                    },
-                    memo = memo
+                    }, memo = memo
                 )
             }
         }
         if (showDialog) {
-            MemoDialog(
-                memo = "", // 여기서 초기 메모 값 설정
+            MemoDialog(memo = "", // 여기서 초기 메모 값 설정
                 onMemoChanged = { updatedMemo ->
                     if (updatedMemo.isNotBlank()) {
                         memoMap[selectedDate] = updatedMemo
@@ -191,53 +168,48 @@ fun CalendarComposable(
                         memoMap.remove(selectedDate)
                     }
                     showDialog = false // 다이얼로그 닫기
-                },
-                onDismiss = { showDialog = false } // 다이얼로그 닫기
+                }, onDismiss = { showDialog = false } // 다이얼로그 닫기
             )
         }
     }
 }
 
-
 @Composable
 fun CalendarDay(
-    date: LocalDate,
-    isSelected: Boolean,
-    onDateSelected: (LocalDate) -> Unit,
-    memo: String?
+    date: LocalDate, isSelected: Boolean, onDateSelected: (LocalDate) -> Unit, memo: String?
 ) {
     var showDialog by remember { mutableStateOf(false) }
-//    var memoMap by remember { mutableStateOf(mutableMapOf<LocalDate, String>()) }
     var isMemoDialogOpen by remember { mutableStateOf(false) }
-    Box(
-        modifier = Modifier
-            .size(width = 30.dp, height = 110.dp)
-            .clip(RectangleShape)
-            .clickable {
-                if (isSelected) {
-                    // 선택된 날짜 클릭 시 메모 다이얼로그 열기
-                    isMemoDialogOpen = true
-                } else {
-                    // 선택되지 않은 날짜 클릭 시 날짜 선택 동작 수행
-                    onDateSelected(date)
-                }
+
+    // 추가: 날짜별 메모 표시 여부를 결정하는 변수
+    var showMemo by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier
+        .size(width = 30.dp, height = 110.dp)
+        .clip(RectangleShape)
+        .clickable {
+            if (isSelected) {
+                // 선택된 날짜 클릭 시 메모 다이얼로그 열기
+                isMemoDialogOpen = true
+            } else {
+                // 선택되지 않은 날짜 클릭 시 날짜 선택 동작 수행
+                onDateSelected(date)
             }
-            .background(if (isSelected) Color.Gray else Color.Transparent),
-        contentAlignment = Alignment.TopCenter
-    ) {
+        }
+        .background(if (isSelected) Color.Gray else Color.Transparent),
+        contentAlignment = Alignment.TopCenter) {
         Text(
             text = date.dayOfMonth.toString(),
             fontWeight = FontWeight.Bold,
             color = if (isSelected) Color.White else Color.Black
         )
-        val showMemo = isSelected && showDialog
-        if (showMemo) {
+        val showMemoText = isSelected && showMemo // 메모를 표시할지 여부 결정
+        if (showMemoText) {
             val memoText = memo ?: "메모 없음"
             Text(
                 text = memoText,
-                style = TextStyle(
-                    fontSize = 12.sp,
-                    color = Color.Gray
+                style = androidx.compose.ui.text.TextStyle(
+                    fontSize = 12.sp, color = Color.Gray
                 ),
                 textAlign = TextAlign.Center,
                 modifier = Modifier
@@ -251,40 +223,28 @@ fun CalendarDay(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MemoDialog(
-    memo: String,
-    onMemoChanged: (String) -> Unit,
-    onDismiss: () -> Unit
+    memo: String, onMemoChanged: (String) -> Unit, onDismiss: () -> Unit
 ) {
     var updatedMemo by remember { mutableStateOf(memo) }
 
-    AlertDialog(
-        onDismissRequest = { onDismiss() },
-        title = { Text("메모") },
-        text = {
-            TextField(
-                value = updatedMemo,
-                onValueChange = { updatedMemo = it },
-                label = { Text("메모를 입력하세요") },
-                singleLine = true,
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        onMemoChanged(updatedMemo)
-                        onDismiss()
-                    }
-                )
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = {
+    AlertDialog(onDismissRequest = { onDismiss() }, title = { Text("메모") }, text = {
+        TextField(value = updatedMemo,
+            onValueChange = { updatedMemo = it },
+            label = { Text("메모를 입력하세요") },
+            singleLine = true,
+            keyboardActions = KeyboardActions(onDone = {
                 onMemoChanged(updatedMemo)
                 onDismiss()
-            }) {
-                Text("확인")
-            }
+            })
+        )
+    }, confirmButton = {
+        TextButton(onClick = {
+            onMemoChanged(updatedMemo)
+            onDismiss()
+        }) {
+            Text("확인")
         }
-    )
+    })
 }
-
-
 
 
