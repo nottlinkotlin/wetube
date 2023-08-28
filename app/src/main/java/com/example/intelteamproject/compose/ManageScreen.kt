@@ -113,7 +113,7 @@ fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
                             QrCodeAnalyzer { result ->
                                 code = result
                                 if (result == "em3j5h6fk44b5") {
-                                    uidDocument.("출근")
+//                                    uidDocument.("출근")
                                 }
                             }
                         )
