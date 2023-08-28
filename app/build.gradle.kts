@@ -93,6 +93,8 @@ dependencies {
     //Location
     implementation ("com.google.android.gms:play-services-location:18.0.0")
 
+    //coil
+    implementation("io.coil-kt:coil-compose:2.4.0")
 
 
 
