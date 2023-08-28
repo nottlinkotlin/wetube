@@ -63,103 +63,19 @@ import java.util.Locale
 fun MessageScreen(navController: NavController) {
     var messages = remember { mutableStateListOf("") }
     var newMessage by remember { mutableStateOf("") }
-//    var printConversation by remember { mutableStateOf("") }
 //    var messageList = remember { mutableStateListOf<Message>() }
     var displayedMessages by remember { mutableStateOf(emptyList<Message>()) }
-//    var newMessages = remember { mutableStateOf<Message?>(null) }
     //메세지가 화면에 다 찼을 때, 새로운 메세지가 화면에 보일 수 있도록 위로 자동 스크롤 변수
-    var scrollToIndex by remember { mutableStateOf<Int?>(null) }
+//    var scrollToIndex by remember { mutableStateOf<Int?>(null) }
     val scrollState = rememberLazyListState()
     //firebase database에 연결 관련 변수
     val database = Firebase.database
     //메세지 저장할 공간
 //    val messageRef = database.getReference("messages")
     val messageRef = database.getReference("messages").child("message")
-//    var isInitialDataLoaded by remember { mutableStateOf(false) }
-    //messageList 안에 들어 있는 값을 Map으로 전환 후 저장
-//    val messageMap = messageList.mapIndexed { index, message ->
-//        index.toString() to message
-//    }.toMap()
 //    //메세지 불러오는 함수
     messageRef.addChildEventListener(object : ChildEventListener {
         override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-            //실패 코드(list -> map -> list)
-//            val messagesMap = snapshot.value as? Map<String, Any>
-//            val newMessageList = messagesMap?.values?.map {it as? Map<String, Any> }
-//                ?.mapNotNull { map ->
-//                    val text = map?.get("text") as? String
-//                    val sender = map?.get("sender") as? String
-//                    val timestamp = map?.get("timestamp") as? Long
-//                    if (text != null && sender != null && timestamp != null) {
-//                        Message(text, sender, timestamp)
-//                    } else {
-//                        null
-//                    }
-//                } ?: emptyList()
-//            messageList = rememberUpdatedState(newValue = newMessageList)
-            //저장은 됐는데 출력이 안됨
-//                val value = snapshot.getValue(Message::class.java)
-//                if (value != null) {
-//                    messageList.add(value)
-//                }
-
-            //일단 최종 코드
-//            for (messageSnapshot in snapshot.children) {
-//                val text = messageSnapshot.child("text").getValue(String::class.java)
-//                val sender = messageSnapshot.child("sender").getValue(String::class.java)
-//                val timestamp = messageSnapshot.child("timestamp").getValue(Any::class.java)
-//
-//                if (text != null && sender != null && timestamp != null) {
-//                    val message = Message(text, sender, timestamp)
-//                    messageList.add(message)
-//                }
-//            }
-            //코드 수정 -> 위랑 똑같음(실패)
-//            val newMessages = snapshot.children.mapNotNull { messageSnapshot ->
-//                val text = messageSnapshot.child("text").getValue(String::class.java)
-//                val sender = messageSnapshot.child("sender").getValue(String::class.java)
-//                val timestamp = messageSnapshot.child("timestamp").getValue(Any::class.java)
-//
-//                if (text != null && sender != null && timestamp != null) {
-//                    Message(text, sender, timestamp)
-//                } else {
-//                    null
-//                }
-//            }
-//            messageList += newMessages
-            //한번말 실행되게 한 후 새로 저장되는 메세지만 출력
-//            val messageList = mutableListOf<Message>()
-//            if (!isInitialDataLoaded) {
-//                isInitialDataLoaded = true
-//                messageList.clear()
-//
-//                for (messageSnapshot in snapshot.children) {
-//                    val text = messageSnapshot.child("text").getValue(String::class.java)
-//                    val sender = messageSnapshot.child("sender").getValue(String::class.java)
-//                    val timestamp = messageSnapshot.child("timestamp").getValue(Any::class.java)
-//
-//                    if (text != null && sender != null && timestamp != null) {
-//                        val message = Message(text, sender, timestamp)
-//                        messageList.add(message)
-////                        displayedMessages = ArrayList(messageList)
-//                    }
-//                }
-//                displayedMessages = messageList.toMutableStateList()
-//            } else {
-////                val messageList = mutableListOf<Message>()
-//                for (messageSnapshot in snapshot.children) {
-//                    val text = messageSnapshot.child("text").getValue(String::class.java)
-//                    val sender = messageSnapshot.child("sender").getValue(String::class.java)
-//                    val timestamp = messageSnapshot.child("timestamp").getValue(Any::class.java)
-//
-//                    if (text != null && sender != null && timestamp != null) {
-//                        val message = Message(text, sender, timestamp)
-//                        messageList.add(message)
-//                    }
-//                }
-//                val newMessages = messageList - displayedMessages.toSet()
-//                displayedMessages = (displayedMessages + newMessages).toMutableStateList()
-//            }
             //다시 수정(저장된 메세지 중복 출력 이슈 => 원인은 자동 스크롤로 추정)
             val text = snapshot.child("text").getValue(String::class.java)
             val sender = snapshot.child("sender").getValue(String::class.java)
@@ -189,21 +105,12 @@ fun MessageScreen(navController: NavController) {
             Log.w(TAG, "Failed to read value.", error.toException())
         }
     })
-//    //채팅방 들어갔을 때 자동으로 밑으로 스크롤되는 런처
-//    LaunchedEffect(displayedMessages) {
-//        if (displayedMessages.isNotEmpty()) {
-//            scrollState.animateScrollToItem(displayedMessages.size)
-//        }
-//    }
     //자동 스크롤되는 런처
     LaunchedEffect(displayedMessages.size) {
 //        scrollToIndex = displayedMessages.size
 
-//        scrollToIndex?.let { index ->
-//            if (index >= 0 && index < displayedMessages.size) {
-                scrollState.animateScrollToItem(displayedMessages.size)
-//            }
-//            scrollToIndex = null
+        scrollState.animateScrollToItem(displayedMessages.size)
+
 //        }
     }
 
@@ -316,8 +223,6 @@ fun MessageScreen(navController: NavController) {
 //                                    messageList.add(inputConversation)
                                     newMessage = ""
 
-//                                    scrollToIndex = displayedMessages.size - 1
-//                                    scrollToIndex = displayedMessages.size
                                 }
                             },
                             colors = IconButtonDefaults.iconButtonColors(Color.White),
@@ -338,7 +243,10 @@ fun MessageScreen(navController: NavController) {
 
 @Composable
 fun ConversationBox(index: Int?, message: Message?) {
-    var timestampShow = SimpleDateFormat("yyyy년 MM월 dd일 E요일 hh:mm", Locale.getDefault()).format(Date(message?.timestamp as Long))
+    var timestampShow = SimpleDateFormat(
+        "yyyy년 MM월 dd일 E요일 hh:mm",
+        Locale.getDefault()
+    ).format(Date(message?.timestamp as Long))
 
 
     message.text?.let {
