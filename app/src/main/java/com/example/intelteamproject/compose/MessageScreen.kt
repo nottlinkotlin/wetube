@@ -149,15 +149,17 @@ fun MessageScreen(userUid: String, navController: NavController) {
                     val userPosition = document.getString("position")
                     val userUid = document.getString("uid")
 
-                    val messengerUser = MessengerUser(
-                        name = userName!!,
-                        phone = userPhone!!,
-                        photoUrl = userPhotoUrl!!,
-                        position = userPosition!!,
-                        uid = userUid!!
+                    if (userName != null) {
+                        val messengerUser = MessengerUser(
+                            name = userName,
+                            phone = userPhone!!,
+                            photoUrl = userPhotoUrl!!,
+                            position = userPosition!!,
+                            uid = userUid!!
 
-                    )
-                    userList.add(messengerUser)
+                        )
+                        userList.add(messengerUser)
+                    }
                 }
             }
             .addOnFailureListener { exception ->
@@ -165,7 +167,7 @@ fun MessageScreen(userUid: String, navController: NavController) {
             }
     }
 
-    var currentUserFirestore = userList.filter { currentUser?.uid == it.uid }
+    var currentUserFirestore = userList.filter { currentUser.uid == it.uid }
     var otherUserFirestore = userList.filter { userUid == it.uid }
 
 
