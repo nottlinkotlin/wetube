@@ -222,8 +222,8 @@ fun MessageScreen(navController: NavController) {
 //                                    printConversation = inputConversation
                                     val messageData = mapOf(
                                         "text" to newMessage,
-                                        "sender" to "너",
-                                        "receiver" to "나",
+                                        "sender" to "나",
+                                        "receiver" to "너",
                                         "timestamp" to ServerValue.TIMESTAMP
                                     )
                                     newMessageRef.push().setValue(messageData)

@@ -222,71 +222,74 @@ fun ContactView(
     navController: NavController
 ) {
     var clickUser by remember { mutableStateOf<String?>(null) }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        shape = RectangleShape,
-    ) {
-        Row(
-            Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+    var myCard = userList.filter { currentUser.uid == it.uid }
+//    var mine: MessengerUser
+    if (myCard.isNotEmpty()) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            ),
+            shape = RectangleShape,
         ) {
-            Spacer(modifier = Modifier.width(15.dp))
-            Surface(
-                modifier = Modifier.size(80.dp),
-                shape = RoundedCornerShape(20.dp),
+            Row(
+                Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                AsyncImage(
-                    model = currentUser.photoUrl.toString(), contentDescription = null,
-                    contentScale = ContentScale.Crop
-                )
-            }
-            Spacer(modifier = Modifier.width(15.dp))
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(150.dp),
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Row(
+                Spacer(modifier = Modifier.width(15.dp))
+                Surface(
+                    modifier = Modifier.size(80.dp),
+                    shape = RoundedCornerShape(20.dp),
+                ) {
+                    AsyncImage(
+                        model = currentUser.photoUrl.toString(), contentDescription = null,
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                Spacer(modifier = Modifier.width(15.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(150.dp),
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Row(
 
+                    ) {
+                        Text(
+                            text = myCard[0].name,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+//                        Text(text = "현재 상태", fontSize = 15.sp)
+                    }
+                    Text(
+                        text = myCard[0].position, fontSize = 18.sp, color = Color.Black
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(130.dp), verticalArrangement = Arrangement.Bottom
                 ) {
                     Text(
-                        text = currentUser.displayName!!,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        text = myCard[0].phone,
+                        color = Color(0xff74787D),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Light,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier
+                            .height(30.dp)
+                            .width(115.dp)
                     )
-//                        Text(text = "현재 상태", fontSize = 15.sp)
+                    Spacer(modifier = Modifier.height(20.dp))
                 }
-                Text(
-                    text = "position", fontSize = 18.sp, color = Color.Black
-                )
+                Spacer(modifier = Modifier.width(15.dp))
             }
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(130.dp), verticalArrangement = Arrangement.Bottom
-            ) {
-                Text(
-                    text = "phone",
-                    color = Color(0xff74787D),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Light,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier
-                        .height(30.dp)
-                        .width(115.dp)
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-            }
-            Spacer(modifier = Modifier.width(15.dp))
         }
     }
 
