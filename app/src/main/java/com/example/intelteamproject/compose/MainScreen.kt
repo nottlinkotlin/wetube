@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -59,7 +58,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.zIndex
 import com.example.intelteamproject.data.User
 import com.example.intelteamproject.database.FirebaseAuthenticationManager
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
@@ -85,6 +83,10 @@ fun MainScreen(navController: NavController) {
         GridItemData(Screen.Messenger.route, Icons.Default.MailOutline, "메신저"),
         GridItemData(Screen.Message.route, Icons.Default.Email, "메시지"),
         GridItemData(Screen.Manage.route, Icons.Default.AccountBox, "근태 관리"),
+        GridItemData(Screen.Attendance.route, Icons.Default.Face, "사용자 출석"),
+        GridItemData(Screen.Signature.route, Icons.Default.Face, "전자 서명"),
+
+
         GridItemData(Screen.Community.route, Icons.Default.Menu, "커뮤니티"),
         GridItemData(Screen.Calendar.route, Icons.Default.DateRange, "캘린더")
     )
