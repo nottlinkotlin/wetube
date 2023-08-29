@@ -5,7 +5,6 @@ import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,10 +14,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -41,61 +38,65 @@ import com.example.intelteamproject.R
 @Composable
 fun FeedbackScreen(navController: NavController) {
     Column(
-        modifier = Modifier.background(color = Color(0xFF333333))
+        modifier = Modifier
+            .background(Color(0xFFF5F5F5))
+            .padding(bottom = 70.dp)
     ) {
         Top(title = "반응 및 피드백 관리")
+        Spacer(modifier = Modifier.height(20.dp))
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(color = Color.White)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Youtube(
                 link = "https://www.youtube.com/watch?v=flTns9o8OWA",
                 title = "남매 반드시 발생하는 상황 월드컵 (with 악뮤)",
-                date = "날짜: 2023-08-26",
+                date = "Date : 2023-08-26",
                 likes = 820,
                 dislikes = 4000,
                 comments = 438
             )
             Youtube(
                 link = "https://www.youtube.com/watch?v=cC8EolQTzbE",
-                title = "악동뮤지션과 악질뮤지션",
-                date = "날짜: 2023-08-25",
+                title = "악동뮤지션과 악질뮤지션                                   ",
+                date = "Date : 2023-08-25",
                 likes = 1200,
-                dislikes = 2000,
+                dislikes = 20,
                 comments = 736
             )
             Youtube(
                 link = "https://www.youtube.com/watch?v=KiXR2UNDSxE",
                 title = "내 돈 주고 사긴 애매하지만 갖고 싶은 전자제품 월드컵",
-                date = "날짜: 2023-08-24",
+                date = "Date : 2023-08-24",
                 likes = 490,
                 dislikes = 20,
                 comments = 242
             )
             Youtube(
                 link = "https://www.youtube.com/watch?v=nbZctrV7zXk",
-                title = "문서작업용 노트북 쇼핑",
-                date = "날짜: 2023-08-23",
+                title = "문서작업용 노트북 쇼핑                                    ",
+                date = "Date : 2023-08-23",
                 likes = 790,
-                dislikes = 420,
+                dislikes = 40,
                 comments = 489
             )
             Youtube(
                 link = "https://www.youtube.com/watch?v=CCAHa6Yv6bI",
-                title = "다른 제목",
-                date = "날짜: 2023-08-22",
+                title = "다른 제목                                                      ",
+                date = "Date : 2023-08-22",
                 likes = 690,
                 dislikes = 12,
                 comments = 412
             )
             Youtube(
                 link = "https://www.youtube.com/watch?v=7aFnrppCmrk",
-                title = "지구의 운명이 외계인의 손에 달려있다면",
-                date = "날짜: 2023-08-21",
+                title = "지구의 운명이 외계인의 손에 달려있다면                        ",
+                date = "Date : 2023-08-21",
                 likes = 340,
-                dislikes = 120,
+                dislikes = 100,
                 comments = 331
             )
         }
@@ -119,38 +120,21 @@ fun Youtube(
     val context = LocalContext.current
     Box(
         modifier = Modifier
-            .size(330.dp, 300.dp)
-            .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(size = 20.dp))
-//            .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp)
-            .border(1.dp, color = Color.Black, shape = RoundedCornerShape(size = 20.dp))
+            .width(350.dp)
+            .height(260.dp)
+            .background(Color(0xFFF5F5F5))
+            .padding(start = 20.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(1.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Center
         ) {
+//            Spacer(modifier = Modifier.height(20.dp))
+            Text(text = title, color = Color(0xFF404041))
+            Text(text = date, color = Color(0xFFADADAE))
+            Spacer(modifier = Modifier.height(6.dp))
             Row(
-            ) {
-                Button(
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFF75462),
-                        contentColor = Color.White
-                    ),
-                    onClick = {
-                        Log.d("Button", "Button clicked") // 로그 출력
-                        OpenLinkInBrowser(context, link)
-                    }) {
-                    Text(text = "Play")
-                }
-                Column {
-                    Text(text = title)
-                    Text(text = date)
-                }
-            }
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.Center
             ) {
                 val reactions = listOf(
                     Reaction("likes", likes),
@@ -158,39 +142,58 @@ fun Youtube(
                     Reaction("comments", comments)
                 )
                 Column {
+                    Spacer(modifier = Modifier.height(6.dp))
+
                     reactions.forEach { reaction ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(0.9f)
                         ) {
                             Text(
                                 text = "${reaction.name}:",
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.width(100.dp)
-                            )
+                                fontWeight = FontWeight.Normal,
+                                modifier = Modifier.width(100.dp),
+                                color = Color(0xFFADADAE),
+
+                                )
                             // 막대 그래프 표시
                             Box(
                                 modifier = Modifier
-                                    .fillMaxWidth()
+                                    .width(200.dp)
                                     .height(10.dp)
                                     .background(Color.LightGray)
                             ) {
                                 Box(
                                     modifier = Modifier
                                         .height(10.dp)
-                                        .width((reaction.value / 20).dp) // 임의로 설정한 값
-                                        .background(Color.Black)
+                                        .width((reaction.value / 15).dp) // 임의로 설정한 값
+                                        .background(Color(0xFFC4302B))
                                 )
                             }
-                            Spacer(modifier = Modifier.width(1.dp))
-                            Text(text = reaction.value.toString())
+//                            Text(text = reaction.value.toString())
                         }
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(6.dp))
+            Column (
+                horizontalAlignment = Alignment.CenterHorizontally
+            ){
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFC4302B),
+                        contentColor = Color.White
+                    ),
+                    onClick = {
+                        Log.d("Button", "Button clicked") // 로그 출력
+                        OpenLinkInBrowser(context, link)
+                    }) {
+                    Text(text = "Youtube")
+                }
+            }
+
         }
     }
-    Spacer(modifier = Modifier.height(16.dp))
 }
 
 
@@ -209,7 +212,7 @@ fun Top(title: String) {
             .fillMaxWidth()
             .height(76.dp)
 //            .padding(start = 16.dp, top = 8.dp, end = 8.dp, bottom = 8.dp)
-            .background(color = Color.White)
+            .background(Color(0xFFF5F5F5))
     ) {
         Row(
             modifier = Modifier
@@ -229,7 +232,7 @@ fun Top(title: String) {
                         fontSize = 26.sp,
                         lineHeight = 32.sp,
                         fontWeight = FontWeight(600),
-                        color = Color(0xFF000000),
+                        color = Color(0xFF404041),
                     )
                 )
             }
@@ -268,7 +271,7 @@ fun Bottom(navController: NavController) {
         modifier = Modifier
             .fillMaxWidth()
             .height(70.dp)
-            .background(color = Color.White)
+            .background(Color(0xFFF5F5F5))
 //            .padding(start = 24.dp, top = 16.dp, end = 24.dp, bottom = 16.dp)
     ) {
         Row(

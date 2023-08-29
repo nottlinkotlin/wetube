@@ -18,8 +18,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,7 +29,11 @@ import kotlin.math.roundToInt
 @Composable
 fun BoardScreen(navController: NavController) {
     Column(
-        modifier = Modifier.background(color = Color(0xFF333333))
+        modifier = Modifier
+            .background(Color(0xFFF5F5F5))
+            .padding(bottom = 70.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+
     ) {
         Top(title = "칸반 보드")
         KanbanBoard()
@@ -46,85 +48,91 @@ fun BoardScreen(navController: NavController) {
 @Composable
 fun KanbanBoard() {
     val todoList = remember { mutableStateListOf<String>() }
-
-    Column(
+    Box(
         modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color.White)
+            .fillMaxSize(0.95f)
+            .background(color = Color(0xFFF5F5F5))
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .fillMaxSize()
+                .background(Color(0xFFF5F5F5))
         ) {
-            Text(
-                text = "To Do",
-                style = TextStyle(
-                    fontSize = 19.sp,
-                    fontWeight = FontWeight(500),
-                    color = Color(0xFF172B4D),
-                )
-            )
-            Text(
-                text = "In progress",
-                style = TextStyle(
-                    fontSize = 19.sp,
-                    fontWeight = FontWeight(500),
-                    color = Color(0xFF172B4D),
-                )
-            )
-            Text(
-                text = "Done",
-                style = TextStyle(
-                    fontSize = 19.sp,
-//                    fontFamily = FontFamily(Font(R.font.inter)),
-                    fontWeight = FontWeight(500),
-                    color = Color(0xFF172B4D),
-                )
-            )
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
+                    .padding(20.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                for ((index, todo) in todoList.withIndex()) {  // 인덱스를 같이 사용하도록 수정
-                    KanbanColumn("To Do", todo,
-                        //TODO: recomposition
-                        onChange = { newValue ->
-                            todoList[index] = newValue
-                        },
-                        onDelete = {  // onDelete 람다를 추가
-                        todoList.removeAt(index)
+                Text(
+                    text = "To Do",
+                    style = TextStyle(
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight(500),
+                        color = Color(0xFF404041),
+                    )
+                )
+                Text(
+                    text = "In Progress",
+                    style = TextStyle(
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight(500),
+                        color = Color(0xFF404041),
+                    )
+                )
+                Text(
+                    text = "Done",
+                    style = TextStyle(
+                        fontSize = 19.sp,
+//                    fontFamily = FontFamily(Font(R.font.inter)),
+                        fontWeight = FontWeight(500),
+                        color = Color(0xFF404041),
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    for ((index, todo) in todoList.withIndex()) {  // 인덱스를 같이 사용하도록 수정
+                        KanbanColumn("To Do", todo,
+                            //TODO: recomposition
+                            onChange = { newValue ->
+                                todoList[index] = newValue
+                            },
+                            onDelete = {  // onDelete 람다를 추가
+                                todoList.removeAt(index)
 //                        todoList = todoList.filterIndexed { i, _ -> i != index }
-                    })
-                    Spacer(modifier = Modifier.height(8.dp))
+                            })
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
-        }
-        Button(
-            onClick = {
-                todoList.add( "To Do")
+            Button(
+                onClick = {
+                    todoList.add("To Do")
 //                todoList = todoList + "To Do"
-            },
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .padding(16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFF75462),
-            )
-        ) {
-            Text("+")
-        }
+                },
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFC4302B)
+                    ,
+                )
+            ) {
+                Text("+")
+            }
 
+        }
     }
 }
 
@@ -162,7 +170,7 @@ fun KanbanColumn(columnName: String, todo: String, onChange: (String) -> Unit, o
         Column(
             modifier = Modifier
                 .width(100.dp)
-                .background(Color.White)
+                .background(Color(0xFFF5F5F5))
                 .padding(10.dp)
         ) {
             OutlinedTextField(
@@ -173,7 +181,7 @@ fun KanbanColumn(columnName: String, todo: String, onChange: (String) -> Unit, o
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Transparent),
+                    .background(Color(0xFFF5F5F5)),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedBorderColor = Color.Gray,
                     unfocusedBorderColor = Color.LightGray
@@ -189,7 +197,7 @@ fun KanbanColumn(columnName: String, todo: String, onChange: (String) -> Unit, o
                         .align(Alignment.CenterHorizontally)
                         .background(color = Color.Transparent),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFF75462),
+                        containerColor = Color(0xFFC4302B),
                     )
                 ) {
                     Text("-")

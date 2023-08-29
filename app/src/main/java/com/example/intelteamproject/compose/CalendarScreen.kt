@@ -65,6 +65,9 @@ fun CalendarScreen(navController: NavController) {
 @Composable
 fun ScheduleScreen() {
     Scaffold(
+        modifier = Modifier
+            .background(Color(0xFFF5F5F5))
+            .padding(bottom = 70.dp),
         topBar = {
             // MyTopBar("스케줄") // MyTopBar 구현에 맞게 추가
         },

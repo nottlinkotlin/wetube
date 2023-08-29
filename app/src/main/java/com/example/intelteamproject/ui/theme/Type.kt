@@ -13,8 +13,8 @@ import com.example.intelteamproject.R
 val pretendard = FontFamily(
     Font(R.font.pretendardlight, FontWeight.Light, FontStyle.Normal),
     Font(R.font.pretendardregular, FontWeight.Medium, FontStyle.Normal),
-    Font(R.font.pretendardbold, FontWeight.Bold, FontStyle.Normal)
-
+    Font(R.font.pretendardbold, FontWeight.Bold, FontStyle.Normal),
+    Font(R.font.pretendarad, FontWeight.Normal,FontStyle.Normal)
 )
 
 // Set of Material typography styles to start with
