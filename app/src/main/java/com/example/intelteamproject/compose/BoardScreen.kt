@@ -44,7 +44,7 @@ fun KanbanBoard() {
         modifier = Modifier
             .fillMaxWidth()
             .height(300.dp)
-            .horizontalScroll(scrollState) // 수평 스크롤을 추가합니다.
+            .horizontalScroll(scrollState) // 수평 스크롤을 추가 합니다.
             .background(Color.Gray),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {

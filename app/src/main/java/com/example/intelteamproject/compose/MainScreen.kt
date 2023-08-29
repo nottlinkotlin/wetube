@@ -75,6 +75,10 @@ fun MainScreen(navController: NavController, onSignOutClicked: () -> Unit) {
         GridItemData(Screen.Message.route, Icons.Default.Email, "메시지"),
         GridItemData(Screen.Manage.route, Icons.Default.AccountBox, "근태 관리"),
         GridItemData(Screen.UserInfo.route, Icons.Default.Face, "사용자 정보 수정"),
+        GridItemData(Screen.Attendance.route, Icons.Default.Face, "사용자 출석"),
+        GridItemData(Screen.Signature.route, Icons.Default.Face, "전자 서명"),
+
+
     )
 
     Surface(
@@ -118,7 +122,7 @@ fun MainScreen(navController: NavController, onSignOutClicked: () -> Unit) {
                 Spacer(modifier = Modifier.height(24.dp))
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2), // 그리드 열의 개수를 설정
-                    modifier = Modifier.fillMaxSize() // 화면을 꽉 채우도록 설정
+                    modifier = Modifier.fillMaxSize() // 화면을 꽉 채우 도록 설정
                 ) {
                     items(cardList.size) { index ->
                         GridItem(cardList[index], navController)

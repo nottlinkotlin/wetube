@@ -69,6 +69,7 @@ fun selectImage() {
                 .width(700.dp)
                 .height(500.dp)
         )
+
         Button(
             onClick = {
                 launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -100,12 +101,14 @@ fun Signature() {
 
     val inkBuilder = remember { Ink.builder() }
     var currentStroke: Ink.Stroke.Builder? by remember { mutableStateOf(null) }
-
+    var isDraw by remember { mutableStateOf(false) }
+    val ink = remember(isDraw) { inkBuilder.build() }
     Column(
         modifier = Modifier
             .pointerInteropFilter { event ->
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
+                        isDraw = true
                         currentStroke = Ink.Stroke.builder()
                         currentStroke?.addPoint(
                             Ink.Point.create(
@@ -135,40 +138,33 @@ fun Signature() {
                         currentStroke?.let {
                             inkBuilder.addStroke(it.build())
                         }
+                        isDraw = false
                     }
                 }
                 true
             }
     ) {
 
-
-        Column {
-
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
-            ) {
-
-                val ink = inkBuilder.build()
-                for (stroke in ink.strokes) {
-                    drawPath(
-                        path = Path().apply {
-                            stroke.points.forEachIndexed { index, point ->
-                                if (index == 0) moveTo(point.x.toFloat(), point.y.toFloat())
-                                else lineTo(point.x.toFloat(), point.y.toFloat())
-                            }
-                        },
-                        color = androidx.compose.ui.graphics.Color.Black,
-                        alpha = 0.8f,
-                        style = Stroke(width = 5.dp.toPx())
-                    )
-                }
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp)
+        ) {
+//            val ink = inkBuilder.build()
+            for (stroke in ink.strokes) {
+                drawPath(
+                    path = Path().apply {
+                        stroke.points.forEachIndexed { index, point ->
+                            if (index == 0) moveTo(point.x.toFloat(), point.y.toFloat())
+                            else lineTo(point.x.toFloat(), point.y.toFloat())
+                        }
+                    },
+                    color = androidx.compose.ui.graphics.Color.Black,
+                    alpha = 0.8f,
+                    style = Stroke(width = 5.dp.toPx())
+                )
             }
-
-
         }
-
 
     }
 
