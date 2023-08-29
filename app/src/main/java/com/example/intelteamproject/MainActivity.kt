@@ -31,6 +31,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.intelteamproject.compose.AttendanceScreen
 import com.example.intelteamproject.compose.BoardScreen
 import com.example.intelteamproject.compose.CommunityScreen
 import com.example.intelteamproject.compose.FeedbackScreen
@@ -39,6 +40,7 @@ import com.example.intelteamproject.compose.MainScreen
 import com.example.intelteamproject.compose.ManageScreen
 import com.example.intelteamproject.compose.MessageScreen
 import com.example.intelteamproject.compose.MessengerScreen
+import com.example.intelteamproject.compose.SignatureScreen
 import com.example.intelteamproject.compose.UserInfoScreen
 import com.example.intelteamproject.data.User
 import com.example.intelteamproject.database.FirebaseAuthenticationManager
@@ -141,6 +143,8 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Manage.route) { ManageScreen(navController){fetchLocation()} }
                         composable(Screen.FeedBack.route){ FeedbackScreen(navController)}
                         composable(Screen.Community.route){ CommunityScreen(navController)}
+                        composable(Screen.Signature.route){SignatureScreen(navController)}
+                        composable(Screen.Attendance.route){ AttendanceScreen(navController)}
                     }
                 }
             }
@@ -160,7 +164,7 @@ class MainActivity : ComponentActivity() {
                     }
                     Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
                 } else {
-                    // SignIn Failed
+
                     Toast.makeText(this, "로그인 실패", Toast.LENGTH_SHORT).show()
                 }
             }

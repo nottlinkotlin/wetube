@@ -37,6 +37,9 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 
 @Composable
@@ -49,6 +52,8 @@ fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
     val uidDocumentRef = uid?.let { db.collection("users").document(it) }
 
     var qrCode = ""
+    val currentTime = LocalDateTime.now()
+        .format(DateTimeFormatter.ofPattern("M월 d일 H시 m분"))
 
     LaunchedEffect(Unit) {
         val uidDocument = uidDocumentRef?.get()?.await()
@@ -81,7 +86,7 @@ fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
             ) == PackageManager.PERMISSION_GRANTED
         )
     }
-    //카메라 권한을 요청하는 런처를 생성해줌
+    //카메라 권한을 요청 하는 런처를 생성해줌
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { granted ->
@@ -103,7 +108,7 @@ fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
             if (hasCamPermission) {
                 AndroidView(
                     factory = { context ->
-                        //카메라 미리보기 화면 표시해줌
+                        //카메라 미리 보기 화면 표시해줌
                         val previewView = PreviewView(context)
                         val preview = Preview.Builder().build()
 
@@ -125,15 +130,27 @@ fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
                             QrCodeAnalyzer { result ->
                                 code = result
                                 if (result == qrCode) {
-                                    uidDocumentRef?.update("checked", true)
+                                    val updates = hashMapOf(
+                                        "checked" to true,
+                                        "checkedTime" to currentTime
+                                    )
+
+                                    uidDocumentRef?.update(updates as Map<String, Any>)
                                         ?.addOnSuccessListener {
                                             // 업데이트 성공 시 처리
-
-                                            Toast.makeText(context,"출석 완료 되었습니다.",Toast.LENGTH_LONG).show()
+                                            Toast.makeText(
+                                                context,
+                                                "출근 완료 되었습니다.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                         ?.addOnFailureListener { e ->
                                             // 업데이트 실패 시 처리
-                                            Toast.makeText(context,"출석 실패 하였습니다.",Toast.LENGTH_LONG).show()
+                                            Toast.makeText(
+                                                context,
+                                                "출근 실패 하였습니다.",
+                                                Toast.LENGTH_LONG
+                                            ).show()
                                         }
                                 }
                             }
@@ -152,14 +169,6 @@ fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
                         previewView
                     },
                 )
-//                Text(
-//                    text = code,
-//                    fontSize = 20.sp,
-//                    fontWeight = FontWeight.Bold,
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .padding(32.dp)
-//                )
 
                 Spacer(modifier = Modifier.padding(36.dp))
 
