@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -133,15 +134,17 @@ fun MessengerScreen(navController: NavController) {
                         val userPosition = document.getString("position")
                         val userUid = document.getString("uid")
 
-                        val messengerUser = MessengerUser(
-                            name = userName!!,
-                            phone = userPhone!!,
-                            photoUrl = userPhotoUrl!!,
-                            position = userPosition!!,
-                            uid = userUid!!
+                        if (userName != null) {
+                            val messengerUser = MessengerUser(
+                                name = userName,
+                                phone = userPhone!!,
+                                photoUrl = userPhotoUrl!!,
+                                position = userPosition!!,
+                                uid = userUid!!
 
-                        )
-                        userList.add(messengerUser)
+                            )
+                            userList.add(messengerUser)
+                        }
                     }
                 }
                 .addOnFailureListener { exception ->
@@ -226,7 +229,7 @@ fun ContactView(
     navController: NavController
 ) {
     var clickUser by remember { mutableStateOf<MessengerUser?>(null) }
-    var myCard = userList.filter { currentUser.uid == it.uid }
+    val myCard = userList.filter { currentUser.uid == it.uid }
 //    var mine: MessengerUser
     if (myCard.isNotEmpty()) {
         Card(
@@ -288,7 +291,8 @@ fun ContactView(
                         textAlign = TextAlign.End,
                         modifier = Modifier
                             .height(30.dp)
-                            .width(115.dp)
+                            .width(135.dp)
+                            .padding(end = 5.dp)
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                 }
@@ -410,40 +414,40 @@ fun MessengerView(userList: MutableList<MessengerUser>, navController: NavContro
     val messageRef = remember { Firebase.database.getReference("messages").child("message") }
     val messageKeyName by remember { mutableStateOf<String?>(null) }
     //메세지 불러오는 함수
-    LaunchedEffect(Unit) {
-        messageRef.addChildEventListener(object : ChildEventListener {
-            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                val text = snapshot.child("text").getValue(String::class.java)
-                val sender = snapshot.child("sender").getValue(String::class.java)
-                val senderUid = snapshot.child("senderUid").getValue(String::class.java)
-                val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
-
-                if (text != null && sender != null && senderUid != null && timestamp != null) {
-                    val message = Message(text, sender, senderUid, timestamp)
-//                    val roomMessages = messagesMap.getOrPut(newMessageRef.key!!) { mutableListOf() }
-                    if (!displayedMessageList.contains(message)) {
-                        displayedMessageList += message
-                    }
-                }
-            }
-
-            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-//            TODO("Not yet implemented")
-            }
-
-            override fun onChildRemoved(snapshot: DataSnapshot) {
-//            TODO("Not yet implemented")
-            }
-
-            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
-//            TODO("Not yet implemented")
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.w(TAG, "Failed to read value.", error.toException())
-            }
-        })
-    }
+//    LaunchedEffect(Unit) {
+//        messageRef.addChildEventListener(object : ChildEventListener {
+//            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+//                val text = snapshot.child("text").getValue(String::class.java)
+//                val sender = snapshot.child("sender").getValue(String::class.java)
+//                val senderUid = snapshot.child("senderUid").getValue(String::class.java)
+//                val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
+//
+//                if (text != null && sender != null && senderUid != null && timestamp != null) {
+//                    val message = Message(text, sender, senderUid, timestamp)
+////                    val roomMessages = messagesMap.getOrPut(newMessageRef.key!!) { mutableListOf() }
+//                    if (!displayedMessageList.contains(message)) {
+//                        displayedMessageList += message
+//                    }
+//                }
+//            }
+//
+//            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+////            TODO("Not yet implemented")
+//            }
+//
+//            override fun onChildRemoved(snapshot: DataSnapshot) {
+////            TODO("Not yet implemented")
+//            }
+//
+//            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+////            TODO("Not yet implemented")
+//            }
+//
+//            override fun onCancelled(error: DatabaseError) {
+//                Log.w(TAG, "Failed to read value.", error.toException())
+//            }
+//        })
+//    }
     LazyColumn {
         items(10) { user ->
             MessageList(user, navController)
