@@ -50,11 +50,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.intelteamproject.data.MessengerUser
+import com.example.intelteamproject.database.FirebaseAuthenticationManager
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ServerValue
 import com.google.firebase.database.ktx.database
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -62,10 +65,10 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MessageScreen(navController: NavController) {
+fun MessageScreen(userUid: String, navController: NavController) {
     var messages = remember { mutableStateListOf("") }
     var newMessage by remember { mutableStateOf("") }
-    var messagesMap = remember { mutableStateMapOf<String, MutableList<Message>>() }
+//    var messagesMap = remember { mutableStateMapOf<String, MutableList<Message>>() }
 //    var messageList = remember { mutableStateListOf<Message>() }
     var displayedMessages by remember { mutableStateOf(emptyList<Message>()) }
     //메세지가 화면에 다 찼을 때, 새로운 메세지가 화면에 보일 수 있도록 위로 자동 스크롤 변수
@@ -73,9 +76,24 @@ fun MessageScreen(navController: NavController) {
     val scrollState = rememberLazyListState()
     //firebase database에 연결 관련 변수
 //    val database = Firebase.database
+    val authManager = FirebaseAuthenticationManager()
+    val currentUser = authManager.getCurrentUser()
+    val currentUid = currentUser?.uid
+    val usersCollection = Firebase.firestore.collection("users")
+    val userList = remember { mutableStateListOf<MessengerUser>() }
+    val roomNameList = remember { mutableStateListOf("","") }
+    var roomName = ""
+    roomNameList[0] = currentUid!!
+    roomNameList[1] = userUid
+    roomNameList.sortDescending()
+    for (name in roomNameList) {
+        roomName += name
+    }
     //메세지 저장할 공간
-    val messageRef = remember { Firebase.database.getReference("messages") }
-    val newMessageRef = messageRef.push()
+    val messageRef =
+        remember { Firebase.database.getReference("messages").child("$roomName") }
+//    val newMessageRef = remember {messageRef.push()}
+
 //    val messageRef = remember { Firebase.database.getReference("messages").child("message") }
 //    //메세지 불러오는 함수
     LaunchedEffect(Unit) {
@@ -83,12 +101,12 @@ fun MessageScreen(navController: NavController) {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
                 val text = snapshot.child("text").getValue(String::class.java)
                 val sender = snapshot.child("sender").getValue(String::class.java)
-                val receiver = snapshot.child("receiver").getValue(String::class.java)
+                val senderUid = snapshot.child("senderUid").getValue(String::class.java)
                 val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
 
-                if (text != null && sender != null && receiver != null && timestamp != null) {
-                    val message = Message(text, sender, receiver,timestamp)
-                    val roomMessages = messagesMap.getOrPut(newMessageRef.key!!) { mutableListOf() }
+                if (text != null && sender != null && senderUid != null && timestamp != null) {
+                    val message = Message(text, sender, senderUid, timestamp)
+//                    val roomMessages = messagesMap.getOrPut(newMessageRef.key!!) { mutableListOf() }
                     if (!displayedMessages.contains(message)) {
                         displayedMessages += message
                     }
@@ -120,6 +138,35 @@ fun MessageScreen(navController: NavController) {
 
 //        }
     }
+
+    LaunchedEffect(Unit) {
+        usersCollection.get()
+            .addOnSuccessListener { querySnapshot ->
+                for (document in querySnapshot) {
+                    val userName = document.getString("name")
+                    val userPhone = document.getString("phone")
+                    val userPhotoUrl = document.getString("photoUrl")
+                    val userPosition = document.getString("position")
+                    val userUid = document.getString("uid")
+
+                    val messengerUser = MessengerUser(
+                        name = userName!!,
+                        phone = userPhone!!,
+                        photoUrl = userPhotoUrl!!,
+                        position = userPosition!!,
+                        uid = userUid!!
+
+                    )
+                    userList.add(messengerUser)
+                }
+            }
+            .addOnFailureListener { exception ->
+                println("Error getting documents: $exception")
+            }
+    }
+
+    var currentUserFirestore = userList.filter { currentUser?.uid == it.uid }
+    var otherUserFirestore = userList.filter { userUid == it.uid }
 
 
     Box(
@@ -162,14 +209,20 @@ fun MessageScreen(navController: NavController) {
                         tint = Color(0xFF1B1D1F)
                     )
                 }
-                Row(
-                    modifier = Modifier
-                        .width(350.dp)
-                        .fillMaxHeight(),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "상대방 이름", fontSize = 18.sp, color = Color.Black)
+                if (otherUserFirestore.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .width(350.dp)
+                            .fillMaxHeight(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = otherUserFirestore[0].name,
+                            fontSize = 18.sp,
+                            color = Color.Black
+                        )
+                    }
                 }
             }
         }
@@ -201,7 +254,7 @@ fun MessageScreen(navController: NavController) {
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = "기능 더 보기",
-                                tint = Color(0xFF1B1D1F)
+                                tint = Color.Red
                             )
                         }
                         TextField(
@@ -216,30 +269,34 @@ fun MessageScreen(navController: NavController) {
                             ),
                             modifier = Modifier.width(300.dp)
                         )
-                        IconButton(
-                            onClick = {
-                                if (newMessage.isNotBlank()) {
+                        if (currentUserFirestore.isNotEmpty()) {
+                            IconButton(
+                                onClick = {
+                                    if (newMessage.isNotBlank()) {
 //                                    printConversation = inputConversation
-                                    val messageData = mapOf(
-                                        "text" to newMessage,
-                                        "sender" to "너",
-                                        "receiver" to "나",
-                                        "timestamp" to ServerValue.TIMESTAMP
-                                    )
-                                    newMessageRef.push().setValue(messageData)
+                                        val messageData = mapOf(
+                                            "text" to newMessage,
+                                            "sender" to currentUserFirestore[0].name,
+                                            "senderUid" to currentUid,
+                                            "timestamp" to ServerValue.TIMESTAMP
+                                        )
+
+                                        messageRef.push().setValue(messageData)
+
 
 //                                    messageList.add(inputConversation)
-                                    newMessage = ""
+                                        newMessage = ""
 
-                                }
-                            },
-                            colors = IconButtonDefaults.iconButtonColors(Color.White),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Send,
-                                contentDescription = "대화 보내기",
-                                tint = Color(0xFF1B1D1F)
-                            )
+                                    }
+                                },
+                                colors = IconButtonDefaults.iconButtonColors(Color.White),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Send,
+                                    contentDescription = "대화 보내기",
+                                    tint = Color.Red
+                                )
+                            }
                         }
                     }
                 }
@@ -250,7 +307,10 @@ fun MessageScreen(navController: NavController) {
 }
 
 @Composable
-fun ConversationBox(index: Int?, message: Message?) {
+fun ConversationBox(index: Int, message: Message?) {
+    val authManager = FirebaseAuthenticationManager()
+    val currentUser = authManager.getCurrentUser()
+    val currentUid = currentUser?.uid
     //메세지와 같이 띄울 시간 포멧
     val timestampShow = SimpleDateFormat(
         "yyyy년 MM월 dd일 E요일 hh:mm",
@@ -258,8 +318,8 @@ fun ConversationBox(index: Int?, message: Message?) {
     ).format(Date(message?.timestamp as Long))
 
     message.text?.let {
-        if (index != null) {
-            if (index % 2 == 0) {
+
+            if (currentUid == message.senderUid) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
@@ -328,12 +388,12 @@ fun ConversationBox(index: Int?, message: Message?) {
             }
         }
     }
-}
+
 
 data class Message(
     val text: String? = null,
     val sender: String = "",
-    val receiver: String = "",
+    val senderUid: String = "",
     val timestamp: Any? = null
 )
 
