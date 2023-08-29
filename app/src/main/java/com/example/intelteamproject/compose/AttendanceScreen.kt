@@ -88,9 +88,9 @@ fun ListItem(user: User) {
 
         Row {
             val imageRes = if (user.checked) {
-                R.drawable.checked3
+                R.drawable.checked5
             } else {
-                R.drawable.checked1
+                R.drawable.checked4
             }
             Image(
                 painter = painterResource(id = imageRes),
