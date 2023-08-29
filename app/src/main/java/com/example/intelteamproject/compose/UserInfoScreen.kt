@@ -6,8 +6,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -43,7 +45,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.intelteamproject.Screen
 import com.example.intelteamproject.data.User
@@ -69,7 +73,7 @@ fun UserInfoScreen(navController: NavController, onSignOutClicked: () -> Unit) {
         var phone by remember { mutableStateOf("") }
         var positionList: List<String> = listOf("PD", "기획팀", "편집팀", "출연팀", "촬영팀")
         var position by remember { mutableStateOf(positionList[0]) }
-
+        var selectedPosition by remember { mutableStateOf(position) }
 
         val existingUser = firestoreManager.getUser(uid)
         if (existingUser != null) {
@@ -78,6 +82,8 @@ fun UserInfoScreen(navController: NavController, onSignOutClicked: () -> Unit) {
             phone = existingUser.phone
             position = existingUser.position
         }
+
+        var expanded by remember { mutableStateOf(false) }
 
         Box(
             modifier = Modifier
@@ -89,7 +95,11 @@ fun UserInfoScreen(navController: NavController, onSignOutClicked: () -> Unit) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "사용자 정보")
+                Text(text = "사용자 정보",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(value = name, onValueChange = { name = it },
                     label = { Text(text = "이름") },
                     singleLine = true,
@@ -109,74 +119,37 @@ fun UserInfoScreen(navController: NavController, onSignOutClicked: () -> Unit) {
                         Icon(imageVector = Icons.Outlined.Phone, contentDescription = null)
                     })
 
-                var expanded by remember { mutableStateOf(false) }
-
-                OutlinedTextField(
-                    value = position,
-                    onValueChange = {
-                        position = it
+                Box(
+                    modifier = Modifier.clickable {
                         expanded = true
-                    },
-                    readOnly = true,
-                    trailingIcon = { Icons.Default.KeyboardArrowDown },
-                    label = { Text(text = "직무") })
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    }
                 ) {
-                    DropdownMenuItem(text = { Text("PD") },
-                        onClick = {
-                            position = "PD"
-                            expanded = false
-                        })
-                    Divider()
-                    DropdownMenuItem(text = { Text("기획팀") },
-                        onClick = {
-                            position = "기획팀"
-                            expanded = false
-                        })
-                    Divider()
-                    DropdownMenuItem(text = { Text("출연팀") },
-                        onClick = {
-                            position = "출연팀"
-                            expanded = false
-                        })
+                    OutlinedTextField(
+                        value = selectedPosition,
+                        onValueChange = {},
+                        readOnly = true,
+                        trailingIcon = { Icons.Default.KeyboardArrowDown },
+                        label = { Text(text = "직무") },
+                        modifier = Modifier.clickable {
+                            expanded = true
+                        }
+                    )
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        positionList.forEach { pos ->
+                            DropdownMenuItem(
+                                text = { Text(pos) },
+                                onClick = {
+                                    selectedPosition = pos
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
                 }
-
-
-//                Column(Modifier.padding(20.dp)) {
-//                    OutlinedTextField(
-//                        value = mSelectedText,
-//                        onValueChange = { mSelectedText = it },
-//                        singleLine = true,
-//                        readOnly = true,
-//                        modifier = Modifier
-//                            .fillMaxWidth(),
-//                        label = { Text("직무") },
-//                        trailingIcon = {
-//                            Icon(icon, null,
-//                                Modifier.clickable { mExpanded = !mExpanded })
-//                        }
-//                    )
-//                    DropdownMenu(
-//                        expanded = mExpanded,
-//                        onDismissRequest = { mExpanded = false },
-//                        modifier = Modifier
-//                    ) {
-//                        positionList.forEach { label ->
-//                            DropdownMenuItem(
-//                                text = { label }, onClick = {
-//                                    mSelectedText = label
-//                                    mExpanded = false
-//                                },
-//                                colors = MenuDefaults.itemColors(Color.White),
-//                                modifier = Modifier.background(Color.Black)
-//
-//                            )
-//                        }
-//                    }
-//                }
-
+                Spacer(modifier = Modifier.height(4.dp))
                 val saveButtonEnabled =
                     name.isNotBlank() && email.isNotBlank() && phone.isNotBlank() && position.isNotBlank()
                 Button(
@@ -203,7 +176,9 @@ fun UserInfoScreen(navController: NavController, onSignOutClicked: () -> Unit) {
                     Icon(
                         imageVector = Icons.Default.ExitToApp,
                         contentDescription = "SignOut",
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(end = 4.dp)
                     )
                     Text(text = "로그 아웃")
                 }

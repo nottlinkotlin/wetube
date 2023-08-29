@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity() {
 //                 A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color(0xDDECD2D2)
+                    color = MaterialTheme.colorScheme.primary
                 ) {
                     val navController = rememberNavController() // navigation
                     //firebase authentication

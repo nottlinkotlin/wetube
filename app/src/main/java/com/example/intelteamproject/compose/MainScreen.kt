@@ -92,31 +92,36 @@ fun MainScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
+            .padding(top = 40.dp, start = 24.dp, end = 24.dp)
     ) {
-        Box(modifier = Modifier.align(Alignment.TopEnd)) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 2.dp, end = 8.dp)
+        ) {
             AsyncImage(
                 model = profileImageUrl,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(34.dp)
-                    .padding(top = 2.dp)
                     .clickable { navController.navigate(Screen.UserInfo.route) }
                     .clip(shape = CircleShape)
             )
+        }
+        Box(modifier = Modifier.align(Alignment.TopEnd)) {
             if (phone.isBlank()) {
                 Icon(
                     imageVector = Icons.Default.Notifications,
                     contentDescription = "edit",
                     tint = Color.Red,
                     modifier = Modifier
-                        .padding(start = 16.dp)
                         .align(Alignment.TopEnd)
                         .zIndex(1f) // 이미지 위에 표시
                 )
             }
         }
+
         Column {
             Text(
                 text = "HOME",
@@ -126,7 +131,7 @@ fun MainScreen(navController: NavController) {
                     .fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(40.dp))
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2), // 그리드 열의 개수를 설정
                 modifier = Modifier.fillMaxSize() // 화면을 꽉 채우도록 설정
