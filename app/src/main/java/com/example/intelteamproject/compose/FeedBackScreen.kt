@@ -11,11 +11,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -119,78 +119,71 @@ fun Youtube(
     val context = LocalContext.current
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(size = 8.dp))
-            .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp)
-            .border(1.dp, color = Color.Black, shape = RoundedCornerShape(size = 8.dp))
+            .size(330.dp, 300.dp)
+            .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(size = 20.dp))
+//            .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp)
+            .border(1.dp, color = Color.Black, shape = RoundedCornerShape(size = 20.dp))
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(1.dp),
-            verticalAlignment = Alignment.CenterVertically
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-//                    .padding(end = 16.dp)
+            Row(
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFF75462),
-                            contentColor = Color.White
-                        ),
-                        onClick = {
-                            Log.d("Button", "Button clicked") // 로그 출력
-                            OpenLinkInBrowser(context, link)
-                        }) {
-                        Text(text = "Play")
-                    }
-                    Column {
-                        Text(text = title)
-                        Text(text = date)
-                    }
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF75462),
+                        contentColor = Color.White
+                    ),
+                    onClick = {
+                        Log.d("Button", "Button clicked") // 로그 출력
+                        OpenLinkInBrowser(context, link)
+                    }) {
+                    Text(text = "Play")
                 }
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    val reactions = listOf(
-                        Reaction("likes", likes),
-                        Reaction("dislikes", dislikes),
-                        Reaction("comments", comments)
-                    )
-                    Column {
-                        reactions.forEach { reaction ->
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
+                Column {
+                    Text(text = title)
+                    Text(text = date)
+                }
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                val reactions = listOf(
+                    Reaction("likes", likes),
+                    Reaction("dislikes", dislikes),
+                    Reaction("comments", comments)
+                )
+                Column {
+                    reactions.forEach { reaction ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "${reaction.name}:",
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.width(100.dp)
+                            )
+                            // 막대 그래프 표시
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(10.dp)
+                                    .background(Color.LightGray)
                             ) {
-                                Text(
-                                    text = "${reaction.name}:",
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.width(100.dp)
-                                )
-                                // 막대 그래프 표시
                                 Box(
                                     modifier = Modifier
-                                        .fillMaxWidth()
                                         .height(10.dp)
-                                        .background(Color.LightGray)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .height(10.dp)
-                                            .width((reaction.value / 20).dp) // 임의로 설정한 값
-                                            .background(Color.Black)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(1.dp))
-                                Text(text = reaction.value.toString())
+                                        .width((reaction.value / 20).dp) // 임의로 설정한 값
+                                        .background(Color.Black)
+                                )
                             }
+                            Spacer(modifier = Modifier.width(1.dp))
+                            Text(text = reaction.value.toString())
                         }
                     }
                 }
@@ -199,6 +192,7 @@ fun Youtube(
     }
     Spacer(modifier = Modifier.height(16.dp))
 }
+
 
 fun OpenLinkInBrowser(context: Context, link: String) {
     val intent = Intent(Intent.ACTION_VIEW, link.toUri())
