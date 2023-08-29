@@ -14,4 +14,7 @@ sealed class Screen(val route: String) {
     object Calendar:Screen("calendar")
 
     object Community:Screen("community")
+
+    object Signature:Screen("signature")
+    object Attendance:Screen("attendance")
 }

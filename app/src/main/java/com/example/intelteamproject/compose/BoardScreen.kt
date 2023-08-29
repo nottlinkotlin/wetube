@@ -1,6 +1,7 @@
 package com.example.intelteamproject.compose
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.Orientation.*
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -15,99 +16,121 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlin.math.roundToInt
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BoardScreen(navController: NavController) {
-    KanbanBoard()
+    Column(
+        modifier = Modifier.background(color = Color(0xFF333333))
+    ) {
+        Top(title = "칸반 보드")
+        KanbanBoard()
+    }
+    Column(
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        Bottom(navController = navController)
+    }
 }
 
-@Preview
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KanbanBoard() {
-    var todoList by remember { mutableStateOf(listOf("To Do")) }
-    Box(
+    val todoList = remember { mutableStateListOf<String>() }
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(color = Color.White)
     ) {
-        Column {
-            Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Text(
-                text = "Kanban Board",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                text = "To Do",
+                style = TextStyle(
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight(500),
+                    color = Color(0xFF172B4D),
+                )
             )
-            Spacer(modifier = Modifier.height(10.dp))
-            Divider(modifier = Modifier.height(3.dp))
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "To Do",
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center
+            Text(
+                text = "In progress",
+                style = TextStyle(
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight(500),
+                    color = Color(0xFF172B4D),
                 )
-                Text(
-                    text = "In Progress",
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center
+            )
+            Text(
+                text = "Done",
+                style = TextStyle(
+                    fontSize = 19.sp,
+//                    fontFamily = FontFamily(Font(R.font.inter)),
+                    fontWeight = FontWeight(500),
+                    color = Color(0xFF172B4D),
                 )
-                Text(
-                    text = "Done",
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center
-                )
-            }
+            )
+        }
 
-            Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
 
-            // 드래그 가능한 박스
-
-            Row(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    for (todo in todoList) {
-                        KanbanColumn("To Do", todo)
-                        Spacer(modifier = Modifier.height(2.dp))
-                    }
-
-                Button(
-                    onClick = {
-                        todoList = todoList + "To Do"
-                    },
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .wrapContentSize()
-
-                ) {
-                    Text("+")
-                } }
+                for ((index, todo) in todoList.withIndex()) {  // 인덱스를 같이 사용하도록 수정
+                    KanbanColumn("To Do", todo,
+                        //TODO: recomposition
+                        onChange = { newValue ->
+                            todoList[index] = newValue
+                        },
+                        onDelete = {  // onDelete 람다를 추가
+                        todoList.removeAt(index)
+//                        todoList = todoList.filterIndexed { i, _ -> i != index }
+                    })
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
+        Button(
+            onClick = {
+                todoList.add( "To Do")
+//                todoList = todoList + "To Do"
+            },
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFF75462),
+            )
+        ) {
+            Text("+")
+        }
+
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun KanbanColumn(columnName: String, todo: String) {
+fun KanbanColumn(columnName: String, todo: String, onChange: (String) -> Unit, onDelete: () -> Unit) {
     val density = LocalDensity.current
 
     val configuration = LocalConfiguration.current
@@ -117,7 +140,8 @@ fun KanbanColumn(columnName: String, todo: String) {
     val maxOffset = screenWidthPx - cardWidthPx
 
     var offset by remember { mutableStateOf(0f) }
-    var todoText by remember { mutableStateOf(todo) }
+//    var todoText by remember { mutableStateOf(todo) }
+    var showDeleteButton by remember { mutableStateOf(true) }
 
     Box(
         modifier = Modifier
@@ -129,7 +153,7 @@ fun KanbanColumn(columnName: String, todo: String) {
                 )
             }
             .draggable(
-                orientation = Horizontal,
+                orientation = Orientation.Horizontal,
                 state = rememberDraggableState { delta ->
                     offset = (offset + delta).coerceIn(0f, maxOffset)
                 }
@@ -138,18 +162,39 @@ fun KanbanColumn(columnName: String, todo: String) {
         Column(
             modifier = Modifier
                 .width(100.dp)
-                .background(Color.LightGray)
+                .background(Color.White)
+                .padding(10.dp)
         ) {
-            TextField(
-                value = todoText,
+            OutlinedTextField(
+                value = todo,
                 onValueChange = { newValue ->
-                    todoText = newValue
+                    onChange(newValue)
+                    showDeleteButton = newValue.isNotBlank()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(8.dp)
+                    .background(Color.Transparent),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color.Gray,
+                    unfocusedBorderColor = Color.LightGray
+                ),
             )
+            if (showDeleteButton) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                              onDelete()
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .background(color = Color.Transparent),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF75462),
+                    )
+                ) {
+                    Text("-")
+                }
+            }
         }
     }
 }
