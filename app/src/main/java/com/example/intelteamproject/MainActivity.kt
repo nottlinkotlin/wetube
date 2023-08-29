@@ -1,7 +1,12 @@
 package com.example.intelteamproject
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -12,13 +17,22 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.intelteamproject.compose.AttendanceScreen
 import com.example.intelteamproject.compose.BoardScreen
 import com.example.intelteamproject.compose.CalendarScreen
 import com.example.intelteamproject.compose.CommunityScreen
@@ -28,7 +42,11 @@ import com.example.intelteamproject.compose.MainScreen
 import com.example.intelteamproject.compose.ManageScreen
 import com.example.intelteamproject.compose.MessageScreen
 import com.example.intelteamproject.compose.MessengerScreen
+import com.example.intelteamproject.compose.SignatureScreen
 import com.example.intelteamproject.compose.UserInfoScreen
+import com.example.intelteamproject.data.User
+import com.example.intelteamproject.database.FirebaseAuthenticationManager
+import com.example.intelteamproject.database.FirestoreManager
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -40,6 +58,10 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
 
@@ -67,7 +89,7 @@ class MainActivity : ComponentActivity() {
 //                 A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.primary
                 ) {
                     val navController = rememberNavController() // navigation
                     //firebase authentication
@@ -90,9 +112,10 @@ class MainActivity : ComponentActivity() {
                                 try {
                                     // Google SignIn was successful, authenticate with firebase
                                     val account = task.getResult(ApiException::class.java)!!
-                                    firebaseAuthWithGoogle(account.idToken!!)
-                                    navController.popBackStack()
-                                    navController.navigate(Screen.Main.route)
+                                    firebaseAuthWithGoogle(
+                                        account.idToken!!,
+                                        navController = navController
+                                    )
                                 } catch (e: Exception) {
                                     // Google SignIn failed
                                     Log.d("SignIn", "로그인 실패")
@@ -109,41 +132,53 @@ class MainActivity : ComponentActivity() {
                                 launcher.launch(signInIntent)
                             }
                         }
-                        composable(Screen.UserInfo.route) { UserInfoScreen(navController) }
-                        composable(Screen.Main.route) {
-                            MainScreen(
+                        composable(Screen.UserInfo.route) {
+                            UserInfoScreen(
                                 navController,
-                                onSignOutClicked = { signOut(navController) }
-                            )
+                                onSignOutClicked = { signOut(navController) })
                         }
+                        composable(Screen.Main.route) { MainScreen(navController) }
                         composable(Screen.Board.route) { BoardScreen(navController) }
                         composable(Screen.Messenger.route) { MessengerScreen(navController) }
                         composable(Screen.Message.route) { MessageScreen(navController) }
                         composable(Screen.Manage.route) { ManageScreen(navController){fetchLocation()} }
-                        composable(Screen.FeedBack.route){ FeedbackScreen(navController)}
-                        composable(Screen.Community.route){ CommunityScreen(navController)}
-                        composable(Screen.Calendar.route){ CalendarScreen(navController)}
+                        composable(Screen.Signature.route){SignatureScreen(navController)}
+                        composable(Screen.Attendance.route){ AttendanceScreen(navController)}
+                        composable(Screen.FeedBack.route) { FeedbackScreen(navController) }
+                        composable(Screen.Community.route) { CommunityScreen(navController) }
+                        composable(Screen.Calendar.route) { CalendarScreen(navController) }
                     }
                 }
             }
         }
     }
 
-    private fun firebaseAuthWithGoogle(idToken: String) {
+    private fun firebaseAuthWithGoogle(idToken: String, navController: NavController) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         mAuth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     // SignIn Successful
+                    val currentUser = mAuth.currentUser
+                    currentUser?.let {
+                        navController.popBackStack()
+                        navController.navigate(Screen.UserInfo.route)
+                    }
                     Toast.makeText(this, "로그인 성공", Toast.LENGTH_SHORT).show()
                 } else {
-                    // SignIn Failed
+
                     Toast.makeText(this, "로그인 실패", Toast.LENGTH_SHORT).show()
                 }
             }
     }
 
     private fun signOut(navController: NavController) {
+        val db = Firebase.firestore
+        val authManager = FirebaseAuthenticationManager()
+        val currentUser = authManager.getCurrentUser()
+        val uid = currentUser?.uid
+        val docRef = uid?.let { db.collection("users").document(it) }
+
         // get the google account
         val googleSignInClient: GoogleSignInClient
 
@@ -158,7 +193,14 @@ class MainActivity : ComponentActivity() {
         // Sign Out of all accounts
         mAuth.signOut()
         googleSignInClient.signOut().addOnSuccessListener {
-            Toast.makeText(this, "로그아웃 성공", Toast.LENGTH_SHORT).show()
+            docRef?.delete()
+                ?.addOnSuccessListener {
+                    Toast.makeText(this, "로그아웃 성공", Toast.LENGTH_SHORT).show()
+                }
+                ?.addOnFailureListener { e ->
+                    // 삭제 실패 시 동작
+                    Log.e("Firestore", "Error deleting document", e)
+                }
             navController.navigate(Screen.Login.route)
         }.addOnFailureListener {
             Toast.makeText(this, "로그아웃 실패", Toast.LENGTH_SHORT).show()
@@ -169,20 +211,28 @@ class MainActivity : ComponentActivity() {
         val task: Task<Location> = fusedLocationProviderClient.lastLocation
         if (ActivityCompat.checkSelfPermission(
                 this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
+                Manifest.permission.ACCESS_FINE_LOCATION
             )
             != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
                 this,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
+                Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
 
-        ){
-            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),101)
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                101
+            )
             return
         }
         task.addOnSuccessListener {
-            if(it!=null){
-                Toast.makeText(applicationContext, "${it.latitude} ${it.longitude},",Toast.LENGTH_LONG).show()
+            if (it != null) {
+                Toast.makeText(
+                    applicationContext,
+                    "${it.latitude} ${it.longitude},",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
