@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Email
@@ -18,6 +20,8 @@ import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -38,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.intelteamproject.Screen
@@ -47,7 +52,7 @@ import com.example.intelteamproject.database.FirestoreManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserInfoScreen(navController: NavController) {
+fun UserInfoScreen(navController: NavController, onSignOutClicked: () -> Unit) {
     // 구글 연동 이름, 이메일 가져오기
     val authManager = FirebaseAuthenticationManager()
     val firestoreManager = FirestoreManager()
@@ -80,11 +85,11 @@ fun UserInfoScreen(navController: NavController) {
                 .padding(24.dp)
         ) {
             Column(
+                modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(text = "사용자 정보")
-
                 OutlinedTextField(value = name, onValueChange = { name = it },
                     label = { Text(text = "이름") },
                     singleLine = true,
@@ -191,6 +196,16 @@ fun UserInfoScreen(navController: NavController) {
                     enabled = saveButtonEnabled
                 ) {
                     Text(text = "저장")
+                }
+            }
+            Box(modifier = Modifier.align(Alignment.BottomEnd)) {
+                Button(onClick = { onSignOutClicked() }) {
+                    Icon(
+                        imageVector = Icons.Default.ExitToApp,
+                        contentDescription = "SignOut",
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Text(text = "로그 아웃")
                 }
             }
         }

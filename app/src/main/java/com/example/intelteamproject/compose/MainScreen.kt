@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.DateRange
@@ -21,7 +22,10 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MailOutline
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -50,9 +54,9 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.intelteamproject.Screen
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.zIndex
 import com.example.intelteamproject.data.User
 import com.example.intelteamproject.database.FirebaseAuthenticationManager
 import com.google.firebase.auth.FirebaseUser
@@ -61,7 +65,7 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 
 @Composable
-fun MainScreen(navController: NavController, onSignOutClicked: () -> Unit) {
+fun MainScreen(navController: NavController) {
     val authManager = FirebaseAuthenticationManager()
     val currentUser = authManager.getCurrentUser()
     val profileImageUrl = currentUser?.photoUrl.toString()
@@ -76,89 +80,59 @@ fun MainScreen(navController: NavController, onSignOutClicked: () -> Unit) {
     }
 
     val cardList = listOf(
-        GridItemData(Screen.Board.route, Icons.Default.DateRange, "칸반 보드"),
+        GridItemData(Screen.Board.route, Icons.Default.List, "칸반 보드"),
         GridItemData(Screen.FeedBack.route, Icons.Default.Send, "피드백"),
         GridItemData(Screen.Messenger.route, Icons.Default.MailOutline, "메신저"),
         GridItemData(Screen.Message.route, Icons.Default.Email, "메시지"),
         GridItemData(Screen.Manage.route, Icons.Default.AccountBox, "근태 관리"),
-        GridItemData(Screen.UserInfo.route, Icons.Default.Face, "사용자 정보 수정"),
+        GridItemData(Screen.Community.route, Icons.Default.Menu, "커뮤니티"),
+        GridItemData(Screen.Calendar.route, Icons.Default.DateRange, "캘린더")
     )
 
-    Surface(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        color = MaterialTheme.colorScheme.background
+            .padding(24.dp)
     ) {
-        Box {
-            Box(modifier = Modifier.align(Alignment.TopEnd)) {
-                AsyncImage(
-                    model = profileImageUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
+        Box(modifier = Modifier.align(Alignment.TopEnd)) {
+            AsyncImage(
+                model = profileImageUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(34.dp)
+                    .padding(top = 2.dp)
+                    .clickable { navController.navigate(Screen.UserInfo.route) }
+                    .clip(shape = CircleShape)
+            )
+            if (phone.isBlank()) {
+                Icon(
+                    imageVector = Icons.Default.Notifications,
+                    contentDescription = "edit",
+                    tint = Color.Red,
                     modifier = Modifier
-                        .size(40.dp)
-                        .clickable { navController.navigate(Screen.UserInfo.route) }
-                        .clip(shape = CircleShape)
+                        .padding(start = 16.dp)
+                        .align(Alignment.TopEnd)
+                        .zIndex(1f) // 이미지 위에 표시
                 )
-
-                if (phone.isBlank()) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "edit",
-                        modifier = Modifier
-                            .size(24.dp)
-                            .background(Color.Red, CircleShape)
-                            .align(Alignment.TopEnd)
-                    )
-                }
             }
-            Column {
-                Text(
-                    text = "HOME",
-                    fontSize = 24.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2), // 그리드 열의 개수를 설정
-                    modifier = Modifier.fillMaxSize() // 화면을 꽉 채우도록 설정
-                ) {
-                    items(cardList.size) { index ->
-                        GridItem(cardList[index], navController)
-                    }
-                    item {
-                        Card(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .size(150.dp)
-                                .padding(2.dp)
-                                .clickable { onSignOutClicked() },
-                            shape = RectangleShape,
-                            colors = CardDefaults.cardColors(containerColor = Color.White)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.ExitToApp,
-                                        contentDescription = "SignOut",
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                    Text(text = "로그 아웃")
-                                }
-                            }
-                        }
-                    }
+        }
+        Column {
+            Text(
+                text = "HOME",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier
+                    .fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2), // 그리드 열의 개수를 설정
+                modifier = Modifier.fillMaxSize() // 화면을 꽉 채우도록 설정
+            ) {
+                items(cardList.size) { index ->
+                    GridItem(cardList[index], navController)
                 }
             }
         }
@@ -172,10 +146,12 @@ fun GridItem(data: GridItemData, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxSize()
-            .size(150.dp)
-            .padding(2.dp)
+            .size(width = 150.dp, height = 110.dp)
+            .padding(4.dp)
             .clickable { navController.navigate(data.screen) },
-        shape = RectangleShape
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(Color.Red),
+        elevation = CardDefaults.cardElevation(8.dp)
     ) {
         Box(
             modifier = Modifier
@@ -188,9 +164,14 @@ fun GridItem(data: GridItemData, navController: NavController) {
             ) {
                 Icon(
                     imageVector = data.icon, contentDescription = "$data.icon",
-                    modifier = Modifier.size(32.dp)
+                    tint = Color(0xFFEEEBD9),
+                    modifier = Modifier.size(38.dp)
                 )
-                Text(text = data.text)
+                Text(
+                    text = data.text,
+                    color = Color(0xFFEEEBD9),
+                    fontSize = 12.sp
+                )
             }
         }
     }

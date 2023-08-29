@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
@@ -32,6 +33,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.intelteamproject.compose.BoardScreen
+import com.example.intelteamproject.compose.CalendarScreen
 import com.example.intelteamproject.compose.CommunityScreen
 import com.example.intelteamproject.compose.FeedbackScreen
 import com.example.intelteamproject.compose.LoginScreen
@@ -85,7 +87,7 @@ class MainActivity : ComponentActivity() {
 //                 A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = Color(0xDDECD2D2)
                 ) {
                     val navController = rememberNavController() // navigation
                     //firebase authentication
@@ -128,19 +130,19 @@ class MainActivity : ComponentActivity() {
                                 launcher.launch(signInIntent)
                             }
                         }
-                        composable(Screen.UserInfo.route) { UserInfoScreen(navController) }
-                        composable(Screen.Main.route) {
-                            MainScreen(
+                        composable(Screen.UserInfo.route) {
+                            UserInfoScreen(
                                 navController,
-                                onSignOutClicked = { signOut(navController) }
-                            )
+                                onSignOutClicked = { signOut(navController) })
                         }
+                        composable(Screen.Main.route) { MainScreen(navController) }
                         composable(Screen.Board.route) { BoardScreen(navController) }
                         composable(Screen.Messenger.route) { MessengerScreen(navController) }
                         composable(Screen.Message.route) { MessageScreen(navController) }
-                        composable(Screen.Manage.route) { ManageScreen(navController){fetchLocation()} }
-                        composable(Screen.FeedBack.route){ FeedbackScreen(navController)}
-                        composable(Screen.Community.route){ CommunityScreen(navController)}
+                        composable(Screen.Manage.route) { ManageScreen(navController) { fetchLocation() } }
+                        composable(Screen.FeedBack.route) { FeedbackScreen(navController) }
+                        composable(Screen.Community.route) { CommunityScreen(navController) }
+                        composable(Screen.Calendar.route) { CalendarScreen(navController) }
                     }
                 }
             }
