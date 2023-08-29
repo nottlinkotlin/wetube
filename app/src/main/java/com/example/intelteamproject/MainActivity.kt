@@ -29,9 +29,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.intelteamproject.compose.AttendanceScreen
 import com.example.intelteamproject.compose.BoardScreen
 import com.example.intelteamproject.compose.CalendarScreen
@@ -140,13 +142,20 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Main.route) { MainScreen(navController) }
                         composable(Screen.Board.route) { BoardScreen(navController) }
                         composable(Screen.Messenger.route) { MessengerScreen(navController) }
-                        composable(Screen.Message.route) { MessageScreen(navController) }
-                        composable(Screen.Manage.route) { ManageScreen(navController){fetchLocation()} }
-                        composable(Screen.Signature.route){SignatureScreen(navController)}
-                        composable(Screen.Attendance.route){ AttendanceScreen(navController)}
+                        composable(Screen.Manage.route) { ManageScreen(navController) { fetchLocation() } }
                         composable(Screen.FeedBack.route) { FeedbackScreen(navController) }
                         composable(Screen.Community.route) { CommunityScreen(navController) }
                         composable(Screen.Calendar.route) { CalendarScreen(navController) }
+                        composable(Screen.Message.route,
+                            arguments = listOf(navArgument("userUid") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            MessageScreen(
+                                userUid = backStackEntry.arguments?.getString("userUid") ?: "",
+                                navController = navController
+                            )
+                        }
+                        composable(Screen.Signature.route){SignatureScreen(navController)}
+                        composable(Screen.Attendance.route){ AttendanceScreen(navController)}
                     }
                 }
             }

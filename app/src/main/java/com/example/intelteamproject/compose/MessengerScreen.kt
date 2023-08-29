@@ -64,6 +64,10 @@ import com.example.intelteamproject.database.FirestoreManager
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.ChildEventListener
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.QueryDocumentSnapshot
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
@@ -95,7 +99,7 @@ fun MessengerScreen(navController: NavController) {
     ) {
         var clickContact by remember { mutableStateOf(true) }
         var clickDm by remember { mutableStateOf(false) }
-        val firestoreManager = FirestoreManager()
+//        val firestoreManager = FirestoreManager()
         val authManager = FirebaseAuthenticationManager()
         val currentUser = authManager.getCurrentUser()
         val uid = currentUser?.uid
@@ -107,39 +111,43 @@ fun MessengerScreen(navController: NavController) {
         val MyInfoList = remember { mutableStateListOf<String>() }
 
 
-        usersCollection.document(uid!!).get()
-            .addOnSuccessListener { documentSnapshot ->
-                val user = documentSnapshot.toObject(User::class.java)
-                MyInfoList.add(user!!.name)
-                MyInfoList.add(user!!.phone)
-                MyInfoList.add(user!!.photoUrl)
-                MyInfoList.add(user!!.position)
-            }
-            .addOnFailureListener { exception ->
-            }
+//        usersCollection.document(uid!!).get()
+//            .addOnSuccessListener { documentSnapshot ->
+//                val user = documentSnapshot.toObject(User::class.java)
+//                MyInfoList.add(user!!.name)
+//                MyInfoList.add(user.phone)
+//                MyInfoList.add(user.photoUrl)
+//                MyInfoList.add(user.position)
+//            }
+//            .addOnFailureListener { exception ->
+//            }
 
 
+        LaunchedEffect(Unit) {
+            usersCollection.get()
+                .addOnSuccessListener { querySnapshot ->
+                    for (document in querySnapshot) {
+                        val userName = document.getString("name")
+                        val userPhone = document.getString("phone")
+                        val userPhotoUrl = document.getString("photoUrl")
+                        val userPosition = document.getString("position")
+                        val userUid = document.getString("uid")
 
-        usersCollection.get()
-            .addOnSuccessListener { querySnapshot ->
-                for (document in querySnapshot) {
-                    val userName = document.getString("name")
-                    val userPhone = document.getString("phone")
-                    val userPhotoUrl = document.getString("photoUrl")
-                    val userPosition = document.getString("position")
+                        val messengerUser = MessengerUser(
+                            name = userName!!,
+                            phone = userPhone!!,
+                            photoUrl = userPhotoUrl!!,
+                            position = userPosition!!,
+                            uid = userUid!!
 
-                    val messengerUser = MessengerUser(
-                        name = userName!!,
-                        phone = userPhone!!,
-                        photoUrl = userPhotoUrl!!,
-                        position = userPosition!!
-                    )
-                    userList.add(messengerUser)
+                        )
+                        userList.add(messengerUser)
+                    }
                 }
-            }
-            .addOnFailureListener { exception ->
-                println("Error getting documents: $exception")
-            }
+                .addOnFailureListener { exception ->
+                    println("Error getting documents: $exception")
+                }
+        }
 
         Column(
             modifier = Modifier.fillMaxSize()
@@ -180,7 +188,7 @@ fun MessengerScreen(navController: NavController) {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "연락처",
-                            tint = if (clickContact) Color(0xff7FFFD4) else Color.Black
+                            tint = if (clickContact) Color.Red else Color.Black
                         )
                     }
                     IconButton(
@@ -193,17 +201,17 @@ fun MessengerScreen(navController: NavController) {
                         Icon(
                             painter = painterResource(id = R.drawable.dm),
                             contentDescription = "메세지",
-                            tint = if (clickDm) Color(0xff7FFFD4) else Color.Black
+                            tint = if (clickDm) Color.Red else Color.Black
                         )
                     }
                 }
             }
             //상단 아이콘이 눌렸을 때 각각 해당하는 창을 띄움
             if (clickContact) {
-                ContactView(MyInfoList, userList, navController)
+                ContactView(currentUser!!, MyInfoList, userList, navController)
             }
             if (clickDm) {
-                MessengerView(navController)
+                MessengerView(userList, navController)
             }
         }
     }
@@ -212,97 +220,103 @@ fun MessengerScreen(navController: NavController) {
 //연락처 창(처음 화면에 나올 창)
 @Composable
 fun ContactView(
+    currentUser: FirebaseUser,
     list: MutableList<String>,
     userList: MutableList<MessengerUser>,
     navController: NavController
 ) {
-    var clickUser by remember { mutableStateOf<String>("") }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        shape = RectangleShape,
-    ) {
-        Row(
-            Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+    var clickUser by remember { mutableStateOf<MessengerUser?>(null) }
+    var myCard = userList.filter { currentUser.uid == it.uid }
+//    var mine: MessengerUser
+    if (myCard.isNotEmpty()) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            ),
+            shape = RectangleShape,
         ) {
-            Spacer(modifier = Modifier.width(15.dp))
-            Surface(
-                modifier = Modifier.size(80.dp),
-                shape = RoundedCornerShape(20.dp),
+            Row(
+                Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                AsyncImage(
-                    model = list[2], contentDescription = null,
-                    contentScale = ContentScale.Crop
-                )
-            }
-            Spacer(modifier = Modifier.width(15.dp))
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(150.dp),
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Row(
+                Spacer(modifier = Modifier.width(15.dp))
+                Surface(
+                    modifier = Modifier.size(80.dp),
+                    shape = RoundedCornerShape(20.dp),
+                ) {
+                    AsyncImage(
+                        model = currentUser.photoUrl.toString(), contentDescription = null,
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                Spacer(modifier = Modifier.width(15.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(150.dp),
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Row(
 
+                    ) {
+                        Text(
+                            text = myCard[0].name,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+//                        Text(text = "현재 상태", fontSize = 15.sp)
+                    }
+                    Text(
+                        text = myCard[0].position, fontSize = 18.sp, color = Color.Black
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(130.dp), verticalArrangement = Arrangement.Bottom
                 ) {
                     Text(
-                        text = list[0],
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        text = myCard[0].phone,
+                        color = Color(0xff74787D),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Light,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier
+                            .height(30.dp)
+                            .width(115.dp)
                     )
-//                        Text(text = "현재 상태", fontSize = 15.sp)
+                    Spacer(modifier = Modifier.height(20.dp))
                 }
-                Text(
-                    text = list[3], fontSize = 18.sp, color = Color.Black
-                )
+                Spacer(modifier = Modifier.width(15.dp))
             }
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(130.dp), verticalArrangement = Arrangement.Bottom
-            ) {
-                Text(
-                    text = list[1],
-                    color = Color(0xff74787D),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Light,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier
-                        .height(30.dp)
-                        .width(115.dp)
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-            }
-            Spacer(modifier = Modifier.width(15.dp))
         }
     }
 
 //    userList.add(user.providerData)
     LazyColumn {
         items(userList) { user ->
-            ContactCard(user) {
-                clickUser = it
+            if (user.uid != currentUser.uid) {
+                ContactCard(user) {
+                    clickUser = it
+                }
             }
         }
     }
-//    clickUser?.let { user ->
-//        SendMessage(user, navController) {
-//            clickUser = null
-//        }
-//    }
+    clickUser?.let { user ->
+        SendMessage(user, navController) {
+            clickUser = null
+        }
+    }
 }
 
 //연락처 창에 띄울 다른 사용자들의 목록의 틀
 @Composable
-fun ContactCard(user: MessengerUser, onClick: (String) -> Unit) {
+fun ContactCard(user: MessengerUser, onClick: (MessengerUser) -> Unit) {
 //    val name = user!!.displayName
 //    val email = user!!.email
 //    val photoUrl = user!!.photoUrl
@@ -311,7 +325,7 @@ fun ContactCard(user: MessengerUser, onClick: (String) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
-            .clickable { onClick(user.name) },
+            .clickable { onClick(user) },
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -391,10 +405,48 @@ fun ContactCard(user: MessengerUser, onClick: (String) -> Unit) {
 
 //메세지 모여있는 창
 @Composable
-fun MessengerView(navController: NavController) {
+fun MessengerView(userList: MutableList<MessengerUser>, navController: NavController) {
+    var displayedMessageList by remember { mutableStateOf(emptyList<Message>()) }
+    val messageRef = remember { Firebase.database.getReference("messages").child("message") }
+    val messageKeyName by remember { mutableStateOf<String?>(null) }
+    //메세지 불러오는 함수
+    LaunchedEffect(Unit) {
+        messageRef.addChildEventListener(object : ChildEventListener {
+            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                val text = snapshot.child("text").getValue(String::class.java)
+                val sender = snapshot.child("sender").getValue(String::class.java)
+                val senderUid = snapshot.child("senderUid").getValue(String::class.java)
+                val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
+
+                if (text != null && sender != null && senderUid != null && timestamp != null) {
+                    val message = Message(text, sender, senderUid, timestamp)
+//                    val roomMessages = messagesMap.getOrPut(newMessageRef.key!!) { mutableListOf() }
+                    if (!displayedMessageList.contains(message)) {
+                        displayedMessageList += message
+                    }
+                }
+            }
+
+            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+//            TODO("Not yet implemented")
+            }
+
+            override fun onChildRemoved(snapshot: DataSnapshot) {
+//            TODO("Not yet implemented")
+            }
+
+            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+//            TODO("Not yet implemented")
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.w(TAG, "Failed to read value.", error.toException())
+            }
+        })
+    }
     LazyColumn {
-        items(10) { message ->
-            MessageList(message = message, navController)
+        items(10) { user ->
+            MessageList(user, navController)
         }
 
     }
@@ -402,13 +454,13 @@ fun MessengerView(navController: NavController) {
 
 //메세지 창에 띄울 메세지 목록의 틀
 @Composable
-fun MessageList(message: Int, navController: NavController) {
+fun MessageList(user: Int, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
             //메세지 목록 중 하나를 눌렀을 때 해당 목록의 메세지 창으로 전환
-            .clickable { navController.navigate("message") },
+            .clickable { navController.navigate(Screen.Message.route) },
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -442,7 +494,7 @@ fun MessageList(message: Int, navController: NavController) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "이름${message}",
+                        text = "이름${user}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
@@ -476,6 +528,7 @@ fun MessageList(message: Int, navController: NavController) {
 //@Preview
 @Composable
 fun SendMessage(user: MessengerUser, navController: NavController, onDissmiss: () -> Unit) {
+    val userUid = user.uid
     AlertDialog(
         onDismissRequest = { onDissmiss() },
         confirmButton = { /*TODO*/ },
@@ -489,7 +542,8 @@ fun SendMessage(user: MessengerUser, navController: NavController, onDissmiss: (
         },
         text = {
             Button(
-                onClick = { navController.navigate(Screen.Message.route) },
+//                onClick = { navController.navigate(Screen.Message.route + "$userUid") },
+                onClick = { navController.navigate("message/$userUid") },
                 colors = ButtonDefaults.buttonColors(Color.White),
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(0.dp),
