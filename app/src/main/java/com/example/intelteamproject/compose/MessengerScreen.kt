@@ -1,14 +1,13 @@
 package com.example.intelteamproject.compose
 
-import android.graphics.ImageDecoder
-import android.graphics.ImageDecoder.decodeBitmap
-import android.net.Uri
-import android.os.Build
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -23,6 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -31,7 +33,10 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -39,12 +44,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -53,11 +54,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import com.example.intelteamproject.R
 import com.example.intelteamproject.Screen
+import com.example.intelteamproject.data.MessengerUser
+import com.example.intelteamproject.data.User
+import com.example.intelteamproject.database.FirebaseAuthenticationManager
+import com.example.intelteamproject.database.FirestoreManager
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.QueryDocumentSnapshot
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.tasks.await
 
 
 //@Preview(showBackground = true)
@@ -69,6 +80,12 @@ fun MessengerScreenView() {
     }
 }
 
+data class MyInfo(
+    val name: String,
+    val phone: String,
+    val photoUrl: String,
+    val position: String
+)
 
 @Composable
 fun MessengerScreen(navController: NavController) {
@@ -78,16 +95,51 @@ fun MessengerScreen(navController: NavController) {
     ) {
         var clickContact by remember { mutableStateOf(true) }
         var clickDm by remember { mutableStateOf(false) }
-        val auth = FirebaseAuth.getInstance()
-        val user by rememberUpdatedState(newValue = auth.currentUser)
+        val firestoreManager = FirestoreManager()
+        val authManager = FirebaseAuthenticationManager()
+        val currentUser = authManager.getCurrentUser()
+        val uid = currentUser?.uid
 
-//        if (user != null) {
-        val name = user!!.displayName
-        val email = user!!.email
-//        val photoUrl = user!!.photoUrl
-//        } else {
-//            null
-//        }
+        val db = Firebase.firestore
+        val usersCollection = db.collection("users")
+        val userList = remember { mutableStateListOf<MessengerUser>() }
+
+        val MyInfoList = remember { mutableStateListOf<String>() }
+
+
+        usersCollection.document(uid!!).get()
+            .addOnSuccessListener { documentSnapshot ->
+                val user = documentSnapshot.toObject(User::class.java)
+                MyInfoList.add(user!!.name)
+                MyInfoList.add(user!!.phone)
+                MyInfoList.add(user!!.photoUrl)
+                MyInfoList.add(user!!.position)
+            }
+            .addOnFailureListener { exception ->
+            }
+
+
+
+        usersCollection.get()
+            .addOnSuccessListener { querySnapshot ->
+                for (document in querySnapshot) {
+                    val userName = document.getString("name")
+                    val userPhone = document.getString("phone")
+                    val userPhotoUrl = document.getString("photoUrl")
+                    val userPosition = document.getString("position")
+
+                    val messengerUser = MessengerUser(
+                        name = userName!!,
+                        phone = userPhone!!,
+                        photoUrl = userPhotoUrl!!,
+                        position = userPosition!!
+                    )
+                    userList.add(messengerUser)
+                }
+            }
+            .addOnFailureListener { exception ->
+                println("Error getting documents: $exception")
+            }
 
         Column(
             modifier = Modifier.fillMaxSize()
@@ -148,7 +200,7 @@ fun MessengerScreen(navController: NavController) {
             }
             //상단 아이콘이 눌렸을 때 각각 해당하는 창을 띄움
             if (clickContact) {
-                ContactView(user!!)
+                ContactView(MyInfoList, userList, navController)
             }
             if (clickDm) {
                 MessengerView(navController)
@@ -159,8 +211,13 @@ fun MessengerScreen(navController: NavController) {
 
 //연락처 창(처음 화면에 나올 창)
 @Composable
-fun ContactView(user: FirebaseUser) {
-    val name = user!!.displayName
+fun ContactView(
+    list: MutableList<String>,
+    userList: MutableList<MessengerUser>,
+    navController: NavController
+) {
+    var clickUser by remember { mutableStateOf<String>("") }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -180,10 +237,9 @@ fun ContactView(user: FirebaseUser) {
                 modifier = Modifier.size(80.dp),
                 shape = RoundedCornerShape(20.dp),
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
-                    contentDescription = "프로필 사진",
-                    contentScale = ContentScale.Crop,
+                AsyncImage(
+                    model = list[2], contentDescription = null,
+                    contentScale = ContentScale.Crop
                 )
             }
             Spacer(modifier = Modifier.width(15.dp))
@@ -197,7 +253,7 @@ fun ContactView(user: FirebaseUser) {
 
                 ) {
                     Text(
-                        text = "$name",
+                        text = list[0],
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
@@ -205,7 +261,7 @@ fun ContactView(user: FirebaseUser) {
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
                 Text(
-                    text = "소속", fontSize = 18.sp, color = Color.Black
+                    text = list[3], fontSize = 18.sp, color = Color.Black
                 )
             }
             Column(
@@ -214,7 +270,7 @@ fun ContactView(user: FirebaseUser) {
                     .width(130.dp), verticalArrangement = Arrangement.Bottom
             ) {
                 Text(
-                    text = "내선 번호",
+                    text = list[1],
                     color = Color(0xff74787D),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Light,
@@ -228,34 +284,41 @@ fun ContactView(user: FirebaseUser) {
             Spacer(modifier = Modifier.width(15.dp))
         }
     }
-    val userList = remember { mutableListOf(user) }
+
 //    userList.add(user.providerData)
     LazyColumn {
         items(userList) { user ->
-            UserInfo(user)
+            ContactCard(user) {
+                clickUser = it
+            }
         }
-
     }
+//    clickUser?.let { user ->
+//        SendMessage(user, navController) {
+//            clickUser = null
+//        }
+//    }
 }
 
 //연락처 창에 띄울 다른 사용자들의 목록의 틀
 @Composable
-fun UserInfo(user: FirebaseUser) {
-    val name = user!!.displayName
-    val email = user!!.email
+fun ContactCard(user: MessengerUser, onClick: (String) -> Unit) {
+//    val name = user!!.displayName
+//    val email = user!!.email
 //    val photoUrl = user!!.photoUrl
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp),
+            .height(80.dp)
+            .clickable { onClick(user.name) },
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
         shape = RectangleShape,
     ) {
         Row(
-            Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -275,13 +338,11 @@ fun UserInfo(user: FirebaseUser) {
 //                    } else {
 //                        null
 //                    }
-                Image(
-//                        bitmap = bitmap!!.asImageBitmap(),
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
+                AsyncImage(
+                    model = user.photoUrl,
                     contentDescription = "프로필 사진",
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Crop
                 )
-//                }
             }
             Spacer(modifier = Modifier.width(15.dp))
             Column(
@@ -293,17 +354,17 @@ fun UserInfo(user: FirebaseUser) {
                 Row(
 
                 ) {
-                    if (name != null) {
-                        Text(
-                            text = name,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black
-                        )
-                    }
+//                    if (name != null) {
+                    Text(
+                        text = user.name,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+//                    }
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
-                Text(text = "소속", fontSize = 15.sp, color = Color.Black)
+                Text(text = user.position, fontSize = 15.sp, color = Color.Black)
             }
             Column(
                 modifier = Modifier
@@ -311,7 +372,7 @@ fun UserInfo(user: FirebaseUser) {
                     .width(150.dp), verticalArrangement = Arrangement.Bottom
             ) {
                 Text(
-                    text = "내선 번호",
+                    text = user.phone,
                     color = Color(0xff74787D),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Light,
@@ -347,7 +408,7 @@ fun MessageList(message: Int, navController: NavController) {
             .fillMaxWidth()
             .height(80.dp)
             //메세지 목록 중 하나를 눌렀을 때 해당 목록의 메세지 창으로 전환
-            .clickable { navController.navigate(Screen.Message.route) },
+            .clickable { navController.navigate("message") },
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -410,6 +471,42 @@ fun MessageList(message: Int, navController: NavController) {
             Spacer(modifier = Modifier.width(15.dp))
         }
     }
+}
+
+//@Preview
+@Composable
+fun SendMessage(user: MessengerUser, navController: NavController, onDissmiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = { onDissmiss() },
+        confirmButton = { /*TODO*/ },
+        title = {
+            Text(
+                text = user.name,
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp,
+                color = Color.Black
+            )
+        },
+        text = {
+            Button(
+                onClick = { navController.navigate(Screen.Message.route) },
+                colors = ButtonDefaults.buttonColors(Color.White),
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(0.dp),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text(
+                    text = "메세지 보내기",
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 20.sp,
+                    color = Color.Black,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        containerColor = Color.White
+    )
 }
 
 
