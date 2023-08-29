@@ -28,9 +28,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.intelteamproject.compose.BoardScreen
 import com.example.intelteamproject.compose.CommunityScreen
 import com.example.intelteamproject.compose.FeedbackScreen
@@ -137,10 +139,18 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Screen.Board.route) { BoardScreen(navController) }
                         composable(Screen.Messenger.route) { MessengerScreen(navController) }
-                        composable(Screen.Message.route) { MessageScreen(navController) }
-                        composable(Screen.Manage.route) { ManageScreen(navController){fetchLocation()} }
-                        composable(Screen.FeedBack.route){ FeedbackScreen(navController)}
-                        composable(Screen.Community.route){ CommunityScreen(navController)}
+//                        composable(Screen.Message.route) { MessageScreen(navController) }
+                        composable(Screen.Message.route,
+                            arguments = listOf(navArgument("userUid") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            MessageScreen(
+                                userUid = backStackEntry.arguments?.getString("userUid") ?: "",
+                                navController = navController
+                            )
+                        }
+                        composable(Screen.Manage.route) { ManageScreen(navController) { fetchLocation() } }
+                        composable(Screen.FeedBack.route) { FeedbackScreen(navController) }
+                        composable(Screen.Community.route) { CommunityScreen(navController) }
                     }
                 }
             }

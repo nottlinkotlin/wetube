@@ -64,6 +64,10 @@ import com.example.intelteamproject.database.FirestoreManager
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.ChildEventListener
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.QueryDocumentSnapshot
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
@@ -184,7 +188,7 @@ fun MessengerScreen(navController: NavController) {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "연락처",
-                            tint = if (clickContact) Color(0xff7FFFD4) else Color.Black
+                            tint = if (clickContact) Color.Red else Color.Black
                         )
                     }
                     IconButton(
@@ -197,7 +201,7 @@ fun MessengerScreen(navController: NavController) {
                         Icon(
                             painter = painterResource(id = R.drawable.dm),
                             contentDescription = "메세지",
-                            tint = if (clickDm) Color(0xff7FFFD4) else Color.Black
+                            tint = if (clickDm) Color.Red else Color.Black
                         )
                     }
                 }
@@ -207,7 +211,7 @@ fun MessengerScreen(navController: NavController) {
                 ContactView(currentUser!!, MyInfoList, userList, navController)
             }
             if (clickDm) {
-                MessengerView(navController)
+                MessengerView(userList, navController)
             }
         }
     }
@@ -221,7 +225,7 @@ fun ContactView(
     userList: MutableList<MessengerUser>,
     navController: NavController
 ) {
-    var clickUser by remember { mutableStateOf<String?>(null) }
+    var clickUser by remember { mutableStateOf<MessengerUser?>(null) }
     var myCard = userList.filter { currentUser.uid == it.uid }
 //    var mine: MessengerUser
     if (myCard.isNotEmpty()) {
@@ -312,7 +316,7 @@ fun ContactView(
 
 //연락처 창에 띄울 다른 사용자들의 목록의 틀
 @Composable
-fun ContactCard(user: MessengerUser, onClick: (String) -> Unit) {
+fun ContactCard(user: MessengerUser, onClick: (MessengerUser) -> Unit) {
 //    val name = user!!.displayName
 //    val email = user!!.email
 //    val photoUrl = user!!.photoUrl
@@ -321,7 +325,7 @@ fun ContactCard(user: MessengerUser, onClick: (String) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
-            .clickable { onClick(user.name) },
+            .clickable { onClick(user) },
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -401,10 +405,48 @@ fun ContactCard(user: MessengerUser, onClick: (String) -> Unit) {
 
 //메세지 모여있는 창
 @Composable
-fun MessengerView(navController: NavController) {
+fun MessengerView(userList: MutableList<MessengerUser>, navController: NavController) {
+    var displayedMessageList by remember { mutableStateOf(emptyList<Message>()) }
+    val messageRef = remember { Firebase.database.getReference("messages").child("message") }
+    val messageKeyName by remember { mutableStateOf<String?>(null) }
+    //메세지 불러오는 함수
+    LaunchedEffect(Unit) {
+        messageRef.addChildEventListener(object : ChildEventListener {
+            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                val text = snapshot.child("text").getValue(String::class.java)
+                val sender = snapshot.child("sender").getValue(String::class.java)
+                val senderUid = snapshot.child("senderUid").getValue(String::class.java)
+                val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
+
+                if (text != null && sender != null && senderUid != null && timestamp != null) {
+                    val message = Message(text, sender, senderUid, timestamp)
+//                    val roomMessages = messagesMap.getOrPut(newMessageRef.key!!) { mutableListOf() }
+                    if (!displayedMessageList.contains(message)) {
+                        displayedMessageList += message
+                    }
+                }
+            }
+
+            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+//            TODO("Not yet implemented")
+            }
+
+            override fun onChildRemoved(snapshot: DataSnapshot) {
+//            TODO("Not yet implemented")
+            }
+
+            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+//            TODO("Not yet implemented")
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.w(TAG, "Failed to read value.", error.toException())
+            }
+        })
+    }
     LazyColumn {
-        items(10) { message ->
-            MessageList(message = message, navController)
+        items(10) { user ->
+            MessageList(user, navController)
         }
 
     }
@@ -412,13 +454,13 @@ fun MessengerView(navController: NavController) {
 
 //메세지 창에 띄울 메세지 목록의 틀
 @Composable
-fun MessageList(message: Int, navController: NavController) {
+fun MessageList(user: Int, navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
             //메세지 목록 중 하나를 눌렀을 때 해당 목록의 메세지 창으로 전환
-            .clickable { navController.navigate("message") },
+            .clickable { navController.navigate(Screen.Message.route) },
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -452,7 +494,7 @@ fun MessageList(message: Int, navController: NavController) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "이름${message}",
+                        text = "이름${user}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
@@ -485,13 +527,14 @@ fun MessageList(message: Int, navController: NavController) {
 
 //@Preview
 @Composable
-fun SendMessage(user: String, navController: NavController, onDissmiss: () -> Unit) {
+fun SendMessage(user: MessengerUser, navController: NavController, onDissmiss: () -> Unit) {
+    val userUid = user.uid
     AlertDialog(
         onDismissRequest = { onDissmiss() },
         confirmButton = { /*TODO*/ },
         title = {
             Text(
-                text = user,
+                text = user.name,
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
                 color = Color.Black
@@ -499,7 +542,8 @@ fun SendMessage(user: String, navController: NavController, onDissmiss: () -> Un
         },
         text = {
             Button(
-                onClick = { navController.navigate(Screen.Message.route) },
+//                onClick = { navController.navigate(Screen.Message.route + "$userUid") },
+                onClick = { navController.navigate("message/$userUid") },
                 colors = ButtonDefaults.buttonColors(Color.White),
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(0.dp),
