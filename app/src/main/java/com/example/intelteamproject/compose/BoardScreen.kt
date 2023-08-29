@@ -57,6 +57,7 @@ fun KanbanBoard() {
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF5F5F5))
+                .verticalScroll(rememberScrollState())
         ) {
             Row(
                 modifier = Modifier
@@ -84,23 +85,20 @@ fun KanbanBoard() {
                     text = "Done",
                     style = TextStyle(
                         fontSize = 19.sp,
-//                    fontFamily = FontFamily(Font(R.font.inter)),
                         fontWeight = FontWeight(500),
                         color = Color(0xFF404041),
                     )
                 )
             }
-
             Spacer(modifier = Modifier.height(10.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
+//                        .verticalScroll(rememberScrollState())
                 ) {
                     for ((index, todo) in todoList.withIndex()) {  // 인덱스를 같이 사용하도록 수정
                         KanbanColumn("To Do", todo,

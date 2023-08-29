@@ -55,31 +55,31 @@ fun FeedbackScreen(navController: NavController) {
                 link = "https://www.youtube.com/watch?v=flTns9o8OWA",
                 title = "남매 반드시 발생하는 상황 월드컵 (with 악뮤)",
                 date = "Date : 2023-08-26",
-                likes = 820,
-                dislikes = 4000,
-                comments = 438
+                likes = 1100,
+                dislikes = 200,
+                comments = 641
             )
             Youtube(
                 link = "https://www.youtube.com/watch?v=cC8EolQTzbE",
                 title = "악동뮤지션과 악질뮤지션                                   ",
                 date = "Date : 2023-08-25",
-                likes = 1200,
-                dislikes = 20,
-                comments = 736
+                likes = 1300,
+                dislikes = 200,
+                comments = 792
             )
             Youtube(
                 link = "https://www.youtube.com/watch?v=KiXR2UNDSxE",
                 title = "내 돈 주고 사긴 애매하지만 갖고 싶은 전자제품 월드컵",
                 date = "Date : 2023-08-24",
-                likes = 490,
+                likes = 530,
                 dislikes = 20,
-                comments = 242
+                comments = 255
             )
             Youtube(
                 link = "https://www.youtube.com/watch?v=nbZctrV7zXk",
                 title = "문서작업용 노트북 쇼핑                                    ",
                 date = "Date : 2023-08-23",
-                likes = 790,
+                likes = 850,
                 dislikes = 40,
                 comments = 489
             )
@@ -87,7 +87,7 @@ fun FeedbackScreen(navController: NavController) {
                 link = "https://www.youtube.com/watch?v=CCAHa6Yv6bI",
                 title = "다른 제목                                                      ",
                 date = "Date : 2023-08-22",
-                likes = 690,
+                likes = 710,
                 dislikes = 12,
                 comments = 412
             )
@@ -95,7 +95,7 @@ fun FeedbackScreen(navController: NavController) {
                 link = "https://www.youtube.com/watch?v=7aFnrppCmrk",
                 title = "지구의 운명이 외계인의 손에 달려있다면                        ",
                 date = "Date : 2023-08-21",
-                likes = 340,
+                likes = 350,
                 dislikes = 100,
                 comments = 331
             )
@@ -132,7 +132,7 @@ fun Youtube(
 //            Spacer(modifier = Modifier.height(20.dp))
             Text(text = title, color = Color(0xFF404041))
             Text(text = date, color = Color(0xFFADADAE))
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             Row(
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -166,7 +166,7 @@ fun Youtube(
                                 Box(
                                     modifier = Modifier
                                         .height(10.dp)
-                                        .width((reaction.value / 15).dp) // 임의로 설정한 값
+                                        .width((reaction.value / 6).dp) // 임의로 설정한 값
                                         .background(Color(0xFFC4302B))
                                 )
                             }
@@ -175,10 +175,8 @@ fun Youtube(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(6.dp))
-            Column (
-                horizontalAlignment = Alignment.CenterHorizontally
-            ){
+            Spacer(modifier = Modifier.height(10.dp))
+
                 Button(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFC4302B),
@@ -191,8 +189,6 @@ fun Youtube(
                     Text(text = "Youtube")
                 }
             }
-
-        }
     }
 }
 
@@ -301,7 +297,7 @@ fun Bottom(navController: NavController) {
 
             Button(
                 onClick = {
-                    navController.navigate("board")
+                    navController.navigate("signature")
 
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -310,10 +306,11 @@ fun Bottom(navController: NavController) {
                 ),
                 modifier = Modifier
                     .width(70.dp)
+                    .width(70.dp)
                     .height(70.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.heart), contentDescription = null,
+                    painter = painterResource(id = R.drawable.circle), contentDescription = null,
                     modifier = Modifier
                         .width(30.dp)
                         .height(30.dp)
@@ -340,7 +337,7 @@ fun Bottom(navController: NavController) {
             }
             Button(
                 onClick = {
-                    navController.navigate("logout")
+                    navController.navigate("messenger")
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
@@ -351,7 +348,7 @@ fun Bottom(navController: NavController) {
                     .height(70.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.menu), contentDescription = null,
+                    painter = painterResource(id = R.drawable.mess), contentDescription = null,
                     modifier = Modifier
                         .width(30.dp)
                         .height(30.dp)

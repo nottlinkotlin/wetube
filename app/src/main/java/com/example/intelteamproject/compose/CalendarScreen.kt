@@ -312,7 +312,7 @@ fun CalendarDay(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .background(Color.Red)
+                    .background(Color(0xFFC4302B))
                     .padding(4.dp)
             )
         }
