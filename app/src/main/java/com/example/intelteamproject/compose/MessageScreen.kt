@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -37,7 +38,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -50,6 +50,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.intelteamproject.data.MessengerUser
 import com.example.intelteamproject.database.FirebaseAuthenticationManager
 import com.google.firebase.database.ChildEventListener
@@ -81,7 +82,7 @@ fun MessageScreen(userUid: String, navController: NavController) {
     val currentUid = currentUser?.uid
     val usersCollection = Firebase.firestore.collection("users")
     val userList = remember { mutableStateListOf<MessengerUser>() }
-    val roomNameList = remember { mutableStateListOf("","") }
+    val roomNameList = remember { mutableStateListOf("", "") }
     var roomName = ""
     roomNameList[0] = currentUid!!
     roomNameList[1] = userUid
@@ -102,10 +103,12 @@ fun MessageScreen(userUid: String, navController: NavController) {
                 val text = snapshot.child("text").getValue(String::class.java)
                 val sender = snapshot.child("sender").getValue(String::class.java)
                 val senderUid = snapshot.child("senderUid").getValue(String::class.java)
+                val receiverPhotoUrl = snapshot.child("receiverPhotoUrl").getValue(String::class.java)
+                val receiverUid = snapshot.child("receiverUid").getValue(String::class.java)
                 val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
 
-                if (text != null && sender != null && senderUid != null && timestamp != null) {
-                    val message = Message(text, sender, senderUid, timestamp)
+                if (text != null && sender != null && senderUid != null && receiverPhotoUrl != null && receiverUid != null && timestamp != null) {
+                    val message = Message(text, sender, senderUid, receiverPhotoUrl, receiverUid, timestamp)
 //                    val roomMessages = messagesMap.getOrPut(newMessageRef.key!!) { mutableListOf() }
                     if (!displayedMessages.contains(message)) {
                         displayedMessages += message
@@ -177,11 +180,12 @@ fun MessageScreen(userUid: String, navController: NavController) {
             .background(Color.White)
     ) {
         LazyColumn(
-            verticalArrangement = Arrangement.Top,
+            verticalArrangement = Arrangement.Bottom,
             state = scrollState,
             modifier = Modifier
                 .background(Color.White)
                 .padding(top = 60.dp, bottom = 55.dp)
+                .fillMaxHeight()
         ) {
             itemsIndexed(displayedMessages) { index, message ->
                 ConversationBox(index = index, message = message)
@@ -280,6 +284,8 @@ fun MessageScreen(userUid: String, navController: NavController) {
                                             "text" to newMessage,
                                             "sender" to currentUserFirestore[0].name,
                                             "senderUid" to currentUid,
+                                            "receiverPhotoUrl" to otherUserFirestore[0].photoUrl,
+                                            "receiverUid" to otherUserFirestore[0].uid,
                                             "timestamp" to ServerValue.TIMESTAMP
                                         )
 
@@ -321,81 +327,88 @@ fun ConversationBox(index: Int, message: Message?) {
 
     message.text?.let {
 
-            if (currentUid == message.senderUid) {
-                Row(
+        if (currentUid == message.senderUid) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    horizontalAlignment = Alignment.End
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.End
+                    Button(
+                        onClick = { /*TODO*/ },
+                        colors = ButtonDefaults.buttonColors(Color.LightGray),
+                        shape = RoundedCornerShape(topStart = 25.dp, bottomStart = 5.dp),
+                        contentPadding = PaddingValues(8.dp),
+                        modifier = Modifier.wrapContentSize()
                     ) {
-                        Button(
-                            onClick = { /*TODO*/ },
-                            colors = ButtonDefaults.buttonColors(Color.LightGray),
-                            shape = RoundedCornerShape(topStart = 25.dp, bottomStart = 5.dp),
-                            contentPadding = PaddingValues(8.dp),
-                            modifier = Modifier.wrapContentSize()
-                        ) {
-                            Text(
-                                text = message.text,
-                                textAlign = TextAlign.Start,
-                                color = Color.White,
-                                fontSize = 16.sp
-                            )
-                        }
                         Text(
-                            text = timestampShow,
-                            fontWeight = FontWeight.Light,
-                            fontSize = 8.sp,
-                            color = Color.Gray
-                        )
-                    }
-                }
-            } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    Column {
-                        Text(
-                            text = message.sender,
+                            text = message.text,
                             textAlign = TextAlign.Start,
-                            color = Color.Black,
-                            modifier = Modifier.padding(start = 5.dp)
-                        )
-                        Button(
-                            onClick = { /*TODO*/ },
-                            colors = ButtonDefaults.buttonColors(Color.Gray),
-                            shape = RoundedCornerShape(topEnd = 5.dp, bottomEnd = 25.dp),
-                            contentPadding = PaddingValues(8.dp),
-                            modifier = Modifier.wrapContentSize()
-                        ) {
-                            Text(
-                                text = message.text,
-                                textAlign = TextAlign.Start,
-                                color = Color.White,
-                                modifier = Modifier.wrapContentSize(),
-                                fontSize = 16.sp
-                            )
-                        }
-                        Text(
-                            text = timestampShow,
-                            fontWeight = FontWeight.Light,
-                            fontSize = 8.sp,
-                            color = Color.Gray
+                            color = Color.White,
+                            fontSize = 16.sp
                         )
                     }
+                    Text(
+                        text = timestampShow,
+                        fontWeight = FontWeight.Light,
+                        fontSize = 8.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                AsyncImage(
+                    model = message.senderPhotoUrl,
+                    contentDescription = "프로필 사진",
+                    modifier = Modifier.size(20.dp),
+                )
+                Column {
+                    Text(
+                        text = message.sender,
+                        textAlign = TextAlign.Start,
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 5.dp)
+                    )
+                    Button(
+                        onClick = { /*TODO*/ },
+                        colors = ButtonDefaults.buttonColors(Color.Gray),
+                        shape = RoundedCornerShape(topEnd = 5.dp, bottomEnd = 25.dp),
+                        contentPadding = PaddingValues(8.dp),
+                        modifier = Modifier.wrapContentSize()
+                    ) {
+                        Text(
+                            text = message.text,
+                            textAlign = TextAlign.Start,
+                            color = Color.White,
+                            modifier = Modifier.wrapContentSize(),
+                            fontSize = 16.sp
+                        )
+                    }
+                    Text(
+                        text = timestampShow,
+                        fontWeight = FontWeight.Light,
+                        fontSize = 8.sp,
+                        color = Color.Gray
+                    )
                 }
             }
         }
     }
+}
 
 
 data class Message(
     val text: String? = null,
     val sender: String = "",
     val senderUid: String = "",
+    val senderPhotoUrl: String = "",
+    val receiverUid: String = "",
     val timestamp: Any? = null
 )
 
