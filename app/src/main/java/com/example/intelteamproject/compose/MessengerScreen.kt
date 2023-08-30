@@ -1,9 +1,8 @@
 package com.example.intelteamproject.compose
 
-import android.content.ContentValues.TAG
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,27 +19,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,26 +50,18 @@ import coil.compose.AsyncImage
 import com.example.intelteamproject.R
 import com.example.intelteamproject.Screen
 import com.example.intelteamproject.data.MessengerUser
-import com.example.intelteamproject.data.User
 import com.example.intelteamproject.database.FirebaseAuthenticationManager
-import com.example.intelteamproject.database.FirestoreManager
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.ChildEventListener
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ktx.database
-import com.google.firebase.firestore.QueryDocumentSnapshot
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.tasks.await
 
 
 //@Preview(showBackground = true)
 @Composable
 fun MessengerScreenView() {
+
     IntelTeamProjectTheme {
         val navController = rememberNavController()
         MessengerScreen(navController)
@@ -94,22 +77,33 @@ data class MyInfo(
 
 @Composable
 fun MessengerScreen(navController: NavController) {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color.White
+    Column(
+        modifier = Modifier
+            .background(Color(0xFFF5F5F5))
+            .padding(bottom = 40.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+
     ) {
-        var clickContact by remember { mutableStateOf(true) }
-        var clickDm by remember { mutableStateOf(false) }
+        Top(title = "메신저")
+        Surface(
+            modifier = Modifier
+                .fillMaxSize(0.95f)
+                .border(2.dp, color = Color(0xFFADADAE), shape = RoundedCornerShape(20.dp)),
+            color = Color(0xFFF5F5F5),
+
+        ) {
+            var clickContact by remember { mutableStateOf(true) }
+            var clickDm by remember { mutableStateOf(false) }
 //        val firestoreManager = FirestoreManager()
-        val authManager = FirebaseAuthenticationManager()
-        val currentUser = authManager.getCurrentUser()
-        val uid = currentUser?.uid
+            val authManager = FirebaseAuthenticationManager()
+            val currentUser = authManager.getCurrentUser()
+            val uid = currentUser?.uid
 
-        val db = Firebase.firestore
-        val usersCollection = db.collection("users")
-        val userList = remember { mutableStateListOf<MessengerUser>() }
+            val db = Firebase.firestore
+            val usersCollection = db.collection("users")
+            val userList = remember { mutableStateListOf<MessengerUser>() }
 
-        val MyInfoList = remember { mutableStateListOf<String>() }
+            val MyInfoList = remember { mutableStateListOf<String>() }
 
 
 //        usersCollection.document(uid!!).get()
@@ -124,99 +118,108 @@ fun MessengerScreen(navController: NavController) {
 //            }
 
 
-        LaunchedEffect(Unit) {
-            usersCollection.get()
-                .addOnSuccessListener { querySnapshot ->
-                    for (document in querySnapshot) {
-                        val userName = document.getString("name")
-                        val userPhone = document.getString("phone")
-                        val userPhotoUrl = document.getString("photoUrl")
-                        val userPosition = document.getString("position")
-                        val userUid = document.getString("uid")
+            LaunchedEffect(Unit) {
+                usersCollection.get()
+                    .addOnSuccessListener { querySnapshot ->
+                        for (document in querySnapshot) {
+                            val userName = document.getString("name")
+                            val userPhone = document.getString("phone")
+                            val userPhotoUrl = document.getString("photoUrl")
+                            val userPosition = document.getString("position")
+                            val userUid = document.getString("uid")
 
-                        if (userName != null) {
-                            val messengerUser = MessengerUser(
-                                name = userName,
-                                phone = userPhone!!,
-                                photoUrl = userPhotoUrl!!,
-                                position = userPosition!!,
-                                uid = userUid!!
+                            if (userName != null) {
+                                val messengerUser = MessengerUser(
+                                    name = userName,
+                                    phone = userPhone!!,
+                                    photoUrl = userPhotoUrl!!,
+                                    position = userPosition!!,
+                                    uid = userUid!!
 
-                            )
-                            userList.add(messengerUser)
+                                )
+                                userList.add(messengerUser)
+                            }
                         }
                     }
-                }
-                .addOnFailureListener { exception ->
-                    println("Error getting documents: $exception")
-                }
-        }
+                    .addOnFailureListener { exception ->
+                        println("Error getting documents: $exception")
+                    }
+            }
 
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            //상단 바
-            Row(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp)
-                    .background(color = Color.White, shape = RectangleShape),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .fillMaxSize()
+                    .background(Color(0xFFF5F5F5))
+                    .padding(end = 16.dp)
             ) {
-                IconButton(
-                    onClick = { navController.popBackStack() },
-                    colors = IconButtonDefaults.iconButtonColors(Color.White)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowLeft,
-                        contentDescription = "뒤로 가기",
-                        tint = Color(0xFF1B1D1F)
-                    )
+                //상단 바
+//                Row(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(60.dp)
+//                        .background(color = Color.White, shape = RectangleShape),
+//                    horizontalArrangement = Arrangement.SpaceBetween,
+//                    verticalAlignment = Alignment.CenterVertically
+//                ) {
+//                    IconButton(
+//                        onClick = { navController.popBackStack() },
+//                        colors = IconButtonDefaults.iconButtonColors(Color.White)
+//                    ) {
+//                        Icon(
+//                            imageVector = Icons.Default.KeyboardArrowLeft,
+//                            contentDescription = "뒤로 가기",
+//                            tint = Color(0xFF1B1D1F)
+//                        )
+//                    }
+//                    Row(
+//                        modifier = Modifier
+//                            .width(350.dp)
+//                            .fillMaxHeight(1f),
+//                        horizontalArrangement = Arrangement.Start,
+//                        verticalAlignment = Alignment.CenterVertically
+//                    ) {
+//                        IconButton(
+//                            onClick = {
+//                                clickContact = true
+//                                clickDm = false
+//                            },
+//                            colors = IconButtonDefaults.iconButtonColors(Color.White)
+//                        ) {
+//                            Icon(
+//                                imageVector = Icons.Default.Person,
+//                                contentDescription = "연락처",
+//                                tint = if (clickContact) Color.Red else Color.Black
+//                            )
+//                        }
+//                        IconButton(
+//                            onClick = {
+//                                clickContact = false
+//                                clickDm = true
+//                            },
+//                            colors = IconButtonDefaults.iconButtonColors(Color.White)
+//                        ) {
+//                            Icon(
+//                                painter = painterResource(id = R.drawable.dm),
+//                                contentDescription = "메세지",
+//                                tint = if (clickDm) Color.Red else Color.Black
+//                            )
+//                        }
+//                    }
+//                }
+                //상단 아이콘이 눌렸을 때 각각 해당하는 창을 띄움
+                if (clickContact) {
+                    ContactView(currentUser!!, MyInfoList, userList, navController)
                 }
-                Row(
-                    modifier = Modifier
-                        .width(350.dp)
-                        .fillMaxHeight(1f),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(
-                        onClick = {
-                            clickContact = true
-                            clickDm = false
-                        },
-                        colors = IconButtonDefaults.iconButtonColors(Color.White)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "연락처",
-                            tint = if (clickContact) Color.Red else Color.Black
-                        )
-                    }
-                    IconButton(
-                        onClick = {
-                            clickContact = false
-                            clickDm = true
-                        },
-                        colors = IconButtonDefaults.iconButtonColors(Color.White)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.dm),
-                            contentDescription = "메세지",
-                            tint = if (clickDm) Color.Red else Color.Black
-                        )
-                    }
+                if (clickDm) {
+                    MessengerView(userList, navController)
                 }
-            }
-            //상단 아이콘이 눌렸을 때 각각 해당하는 창을 띄움
-            if (clickContact) {
-                ContactView(currentUser!!, MyInfoList, userList, navController)
-            }
-            if (clickDm) {
-                MessengerView(userList, navController)
             }
         }
+    }
+    Column(
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        Bottom(navController = navController)
     }
 }
 
@@ -237,12 +240,14 @@ fun ContactView(
                 .fillMaxWidth()
                 .height(100.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color.White
+                containerColor = Color(0xFFF5F5F5)
             ),
             shape = RectangleShape,
         ) {
             Row(
-                Modifier.fillMaxSize(),
+                Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFF5F5F5)),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -260,11 +265,10 @@ fun ContactView(
                 Column(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .width(150.dp),
+                        .width(90.dp),
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Row(
-
                     ) {
                         Text(
                             text = myCard[0].name,
@@ -281,7 +285,7 @@ fun ContactView(
                 Column(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .width(130.dp), verticalArrangement = Arrangement.Bottom
+                        .width(200.dp), verticalArrangement = Arrangement.Bottom
                 ) {
                     Text(
                         text = myCard[0].phone,
@@ -291,7 +295,7 @@ fun ContactView(
                         textAlign = TextAlign.End,
                         modifier = Modifier
                             .height(30.dp)
-                            .width(135.dp)
+                            .width(200.dp)
                             .padding(end = 5.dp)
                     )
                     Spacer(modifier = Modifier.height(20.dp))
@@ -331,7 +335,7 @@ fun ContactCard(user: MessengerUser, onClick: (MessengerUser) -> Unit) {
             .height(80.dp)
             .clickable { onClick(user) },
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = Color(0xFFF5F5F5)
         ),
         shape = RectangleShape,
     ) {

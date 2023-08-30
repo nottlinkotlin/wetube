@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,7 +41,7 @@ fun FeedbackScreen(navController: NavController) {
             .background(Color(0xFFF5F5F5))
             .padding(bottom = 70.dp)
     ) {
-        Top(title = "반응 및 피드백 관리")
+        Top(title = "피드백 관리")
         Spacer(modifier = Modifier.height(20.dp))
 
         Column(
@@ -177,18 +176,18 @@ fun Youtube(
             }
             Spacer(modifier = Modifier.height(10.dp))
 
-                Button(
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFC4302B),
-                        contentColor = Color.White
-                    ),
-                    onClick = {
-                        Log.d("Button", "Button clicked") // 로그 출력
-                        OpenLinkInBrowser(context, link)
-                    }) {
-                    Text(text = "Youtube")
-                }
+            Button(
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFC4302B),
+                    contentColor = Color.White
+                ),
+                onClick = {
+                    Log.d("Button", "Button clicked") // 로그 출력
+                    OpenLinkInBrowser(context, link)
+                }) {
+                Text(text = "Youtube")
             }
+        }
     }
 }
 
@@ -203,11 +202,15 @@ data class Reaction(val name: String, val value: Int)
 
 @Composable
 fun Top(title: String) {
+    Spacer(
+        modifier = Modifier
+            .height(16.dp)
+    )
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(76.dp)
-//            .padding(start = 16.dp, top = 8.dp, end = 8.dp, bottom = 8.dp)
+            .padding(start = 16.dp, )
             .background(Color(0xFFF5F5F5))
     ) {
         Row(
@@ -218,18 +221,17 @@ fun Top(title: String) {
         ) {
             Box(
                 modifier = Modifier
-                    .width(250.dp)
-                    .height(32.dp)
+                    .width(220.dp)
+                    .height(40.dp)
             ) {
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = title,
                     // Header 1
-                    style = TextStyle(
-                        fontSize = 26.sp,
-                        lineHeight = 32.sp,
-                        fontWeight = FontWeight(600),
-                        color = Color(0xFF404041),
-                    )
+                    fontSize = 30.sp,
+                    lineHeight = 32.sp,
+                    fontWeight = FontWeight(600),
+                    color = Color(0xFF404041),
                 )
             }
             Box(
@@ -310,7 +312,7 @@ fun Bottom(navController: NavController) {
                     .height(70.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.circle), contentDescription = null,
+                    painter = painterResource(id = R.drawable.pen), contentDescription = null,
                     modifier = Modifier
                         .width(30.dp)
                         .height(30.dp)
@@ -329,7 +331,7 @@ fun Bottom(navController: NavController) {
                     .height(70.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.pin), contentDescription = null,
+                    painter = painterResource(id = R.drawable.qrrr), contentDescription = null,
                     modifier = Modifier
                         .width(30.dp)
                         .height(30.dp)
@@ -348,7 +350,7 @@ fun Bottom(navController: NavController) {
                     .height(70.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.mess), contentDescription = null,
+                    painter = painterResource(id = R.drawable.send), contentDescription = null,
                     modifier = Modifier
                         .width(30.dp)
                         .height(30.dp)
@@ -367,7 +369,7 @@ fun Bottom(navController: NavController) {
                     .height(70.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.user2), contentDescription = null,
+                    painter = painterResource(id = R.drawable.person), contentDescription = null,
                     modifier = Modifier
                         .width(30.dp)
                         .height(30.dp)

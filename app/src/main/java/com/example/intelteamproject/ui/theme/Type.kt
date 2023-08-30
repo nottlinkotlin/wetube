@@ -11,25 +11,22 @@ import com.example.intelteamproject.R
 
 
 val pretendard = FontFamily(
-    Font(R.font.pretendardlight, FontWeight.Light, FontStyle.Normal),
-    Font(R.font.pretendardregular, FontWeight.Medium, FontStyle.Normal),
-    Font(R.font.pretendardbold, FontWeight.Bold, FontStyle.Normal),
-    Font(R.font.pretendarad, FontWeight.Normal,FontStyle.Normal)
+    Font(R.font.pretendarad, FontWeight.Normal, FontStyle.Normal)
 )
 
 // Set of Material typography styles to start with
 val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = pretendard,
-        fontWeight = FontWeight.Bold,
-        fontSize = 16.sp,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
-    bodyMedium = TextStyle(
+    titleLarge = TextStyle(
         fontFamily = pretendard,
-        fontWeight = FontWeight.Light,
-        fontSize = 16.sp
+        fontWeight = FontWeight.Normal,
+        fontSize = 28.sp
     )
     /* Other default text styles to override
     titleLarge = TextStyle(

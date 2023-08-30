@@ -54,6 +54,7 @@ fun CalendarScreen(navController: NavController) {
 
     Column(
         verticalArrangement = Arrangement.Bottom
+
     ) {
         Bottom(navController = navController)
     }
@@ -67,7 +68,7 @@ fun ScheduleScreen() {
     Scaffold(
         modifier = Modifier
             .background(Color(0xFFF5F5F5))
-            .padding(bottom = 70.dp),
+            .padding(top = 40.dp, bottom = 70.dp),
         topBar = {
             // MyTopBar("스케줄") // MyTopBar 구현에 맞게 추가
         },
@@ -82,6 +83,8 @@ fun ScheduleScreen() {
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
+                .background(Color(0xFFF5F5F5))
+
         ) {
             CalendarComposable(
                 modifier = Modifier.fillMaxWidth(),
@@ -276,10 +279,9 @@ fun CalendarDay(
         date.dayOfWeek.value == 6 -> Color.Blue // 토요일은 파란색
         else -> Color.Black
     }
-
     Box(
         modifier = Modifier
-            .size(width = 30.dp, height = 110.dp)
+            .size(width = 28.dp, height = 90.dp)
             .clip(RoundedCornerShape(8.dp))
             .then(
                 if (isSelected) Modifier.border(

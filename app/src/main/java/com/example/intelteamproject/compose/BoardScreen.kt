@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -67,27 +66,21 @@ fun KanbanBoard() {
             ) {
                 Text(
                     text = "To Do",
-                    style = TextStyle(
                         fontSize = 19.sp,
                         fontWeight = FontWeight(500),
                         color = Color(0xFF404041),
-                    )
                 )
                 Text(
                     text = "In Progress",
-                    style = TextStyle(
                         fontSize = 19.sp,
                         fontWeight = FontWeight(500),
                         color = Color(0xFF404041),
-                    )
                 )
                 Text(
                     text = "Done",
-                    style = TextStyle(
-                        fontSize = 19.sp,
-                        fontWeight = FontWeight(500),
-                        color = Color(0xFF404041),
-                    )
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight(500),
+                    color = Color(0xFF404041),
                 )
             }
             Spacer(modifier = Modifier.height(10.dp))
@@ -123,8 +116,7 @@ fun KanbanBoard() {
                     .align(Alignment.CenterHorizontally)
                     .padding(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFC4302B)
-                    ,
+                    containerColor = Color(0xFFC4302B),
                 )
             ) {
                 Text("+")
@@ -136,7 +128,12 @@ fun KanbanBoard() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun KanbanColumn(columnName: String, todo: String, onChange: (String) -> Unit, onDelete: () -> Unit) {
+fun KanbanColumn(
+    columnName: String,
+    todo: String,
+    onChange: (String) -> Unit,
+    onDelete: () -> Unit
+) {
     val density = LocalDensity.current
 
     val configuration = LocalConfiguration.current
@@ -189,7 +186,7 @@ fun KanbanColumn(columnName: String, todo: String, onChange: (String) -> Unit, o
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = {
-                              onDelete()
+                        onDelete()
                     },
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
