@@ -401,7 +401,7 @@ fun ContactCard(user: MessengerUser, onClick: (MessengerUser) -> Unit) {
                     textAlign = TextAlign.End,
                     modifier = Modifier
                         .height(30.dp)
-                        .width(135.dp)
+                        .width(145.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
