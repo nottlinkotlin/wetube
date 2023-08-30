@@ -9,5 +9,6 @@ data class User(
     val position: String = "",
     val checked: Boolean = false, // 근태 관리
     val checkedTime: String = "",
-    val qrCode: String = "em3j5h6fk44b5"
+    val qrCode: String = "em3j5h6fk44b5",
+
 )

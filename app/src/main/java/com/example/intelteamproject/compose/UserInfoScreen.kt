@@ -106,18 +106,21 @@ fun UserInfoScreen(navController: NavController, onSignOutClicked: () -> Unit) {
                     leadingIcon = {
                         Icon(imageVector = Icons.Outlined.Face, contentDescription = null)
                     })
+                Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(value = email, onValueChange = { email = it },
                     label = { Text(text = "이메일") },
                     singleLine = true,
                     leadingIcon = {
                         Icon(imageVector = Icons.Outlined.Email, contentDescription = null)
                     })
+                Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(value = phone, onValueChange = { phone = it },
                     label = { Text(text = "전화번호") },
                     singleLine = true,
                     leadingIcon = {
                         Icon(imageVector = Icons.Outlined.Phone, contentDescription = null)
                     })
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Box(
                     modifier = Modifier.clickable {

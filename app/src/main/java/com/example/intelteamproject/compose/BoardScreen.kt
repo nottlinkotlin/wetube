@@ -1,5 +1,6 @@
 package com.example.intelteamproject.compose
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.Orientation.*
@@ -16,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -24,12 +26,14 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.intelteamproject.R
 import kotlin.math.roundToInt
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BoardScreen(navController: NavController) {
+
     Column(
         modifier = Modifier.background(color = Color(0xFF333333))
     ) {
@@ -37,7 +41,9 @@ fun BoardScreen(navController: NavController) {
         KanbanBoard()
     }
     Column(
-        verticalArrangement = Arrangement.Bottom
+        verticalArrangement = Arrangement.Bottom,
+        modifier = Modifier
+            .padding(start = 24.dp)
     ) {
         Bottom(navController = navController)
     }
@@ -46,6 +52,7 @@ fun BoardScreen(navController: NavController) {
 @Composable
 fun KanbanBoard() {
     val todoList = remember { mutableStateListOf<String>() }
+
 
     Column(
         modifier = Modifier
@@ -103,16 +110,16 @@ fun KanbanBoard() {
                             todoList[index] = newValue
                         },
                         onDelete = {  // onDelete 람다를 추가
-                        todoList.removeAt(index)
+                            todoList.removeAt(index)
 //                        todoList = todoList.filterIndexed { i, _ -> i != index }
-                    })
+                        })
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
         Button(
             onClick = {
-                todoList.add( "To Do")
+                todoList.add("To Do")
 //                todoList = todoList + "To Do"
             },
             modifier = Modifier
@@ -130,7 +137,12 @@ fun KanbanBoard() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun KanbanColumn(columnName: String, todo: String, onChange: (String) -> Unit, onDelete: () -> Unit) {
+fun KanbanColumn(
+    columnName: String,
+    todo: String,
+    onChange: (String) -> Unit,
+    onDelete: () -> Unit
+) {
     val density = LocalDensity.current
 
     val configuration = LocalConfiguration.current
@@ -183,7 +195,7 @@ fun KanbanColumn(columnName: String, todo: String, onChange: (String) -> Unit, o
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = {
-                              onDelete()
+                        onDelete()
                     },
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)

@@ -81,13 +81,9 @@ fun MainScreen(navController: NavController) {
         GridItemData(Screen.Board.route, Icons.Default.List, "칸반 보드"),
         GridItemData(Screen.FeedBack.route, Icons.Default.Send, "피드백"),
         GridItemData(Screen.Messenger.route, Icons.Default.MailOutline, "메신저"),
-        GridItemData(Screen.Message.route, Icons.Default.Email, "메시지"),
         GridItemData(Screen.Manage.route, Icons.Default.AccountBox, "근태 관리"),
         GridItemData(Screen.Attendance.route, Icons.Default.Face, "사용자 출석"),
         GridItemData(Screen.Signature.route, Icons.Default.Face, "전자 서명"),
-
-
-        GridItemData(Screen.Community.route, Icons.Default.Menu, "커뮤니티"),
         GridItemData(Screen.Calendar.route, Icons.Default.DateRange, "캘린더")
     )
 

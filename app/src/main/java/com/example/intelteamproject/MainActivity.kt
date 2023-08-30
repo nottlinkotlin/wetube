@@ -218,6 +218,7 @@ class MainActivity : ComponentActivity() {
 
     private fun fetchLocation() {
         val task: Task<Location> = fusedLocationProviderClient.lastLocation
+
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -242,6 +243,7 @@ class MainActivity : ComponentActivity() {
                     "${it.latitude} ${it.longitude},",
                     Toast.LENGTH_LONG
                 ).show()
+
             }
         }
     }

@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,25 +26,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.intelteamproject.Screen
 import com.example.intelteamproject.database.FirebaseAuthenticationManager
-import com.google.firebase.database.FirebaseDatabase
+import com.google.android.gms.location.LocationServices
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+
 
 
 @Composable
 fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
+
+
+
+
     val authManager = FirebaseAuthenticationManager()
     val currentUser = authManager.getCurrentUser()
     val uid = currentUser?.uid
@@ -102,6 +102,25 @@ fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
     }
 
 
+    //gps
+    var hasLocationPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            hasLocationPermission = granted
+        }
+    )
+    LaunchedEffect(key1 = true) {
+        locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -135,10 +154,14 @@ fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
                             QrCodeAnalyzer { result ->
                                 code = result
                                 if (result == qrCode) {
+                                    fetchLocation()
                                     val updates = hashMapOf(
                                         "checked" to true,
-                                        "checkedTime" to currentTime
+                                        "checkedTime" to currentTime,
+
                                     )
+
+
 
                                     uidDocumentRef?.update(updates as Map<String, Any>)
                                         ?.addOnSuccessListener {
@@ -157,7 +180,10 @@ fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
                                                 context,
                                                 "출근 실패 하였습니다.",
                                                 Toast.LENGTH_SHORT
+
+
                                             ).show()
+
                                         }
                                 }
                             }
@@ -179,10 +205,6 @@ fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
 
                 Spacer(modifier = Modifier.padding(36.dp))
 
-//                Button(onClick = { fetchLocation() }) {
-//                    Text(text = "위치")
-//
-//                }
 
 
             }
@@ -194,6 +216,7 @@ fun ManageScreen(navController: NavController, fetchLocation: () -> Unit) {
 
 
 }
+
 
 
 

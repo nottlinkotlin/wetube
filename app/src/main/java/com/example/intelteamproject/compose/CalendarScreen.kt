@@ -1,6 +1,7 @@
 package com.example.intelteamproject.compose
 
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,6 +30,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,11 +40,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.intelteamproject.R
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -50,10 +54,24 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun CalendarScreen(navController: NavController) {
     ScheduleScreen()
+    Box() {
+        Image(
+            painter = painterResource(id = R.drawable.wetube_back),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+        )
 
+
+    }
     Column(
-        verticalArrangement = Arrangement.Bottom
+        verticalArrangement = Arrangement.Bottom,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .padding(start = 24.dp)
     ) {
+
+
         Bottom(navController = navController)
     }
 

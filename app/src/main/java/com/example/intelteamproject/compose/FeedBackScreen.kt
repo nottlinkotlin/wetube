@@ -101,7 +101,9 @@ fun FeedbackScreen(navController: NavController) {
         }
     }
     Column(
-        verticalArrangement = Arrangement.Bottom
+        verticalArrangement = Arrangement.Bottom,
+        modifier = Modifier
+            .padding(start = 24.dp)
     ) {
         Bottom(navController = navController)
     }
