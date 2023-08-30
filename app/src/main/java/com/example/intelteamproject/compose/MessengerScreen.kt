@@ -370,7 +370,7 @@ fun ContactCard(user: MessengerUser, onClick: (MessengerUser) -> Unit) {
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(150.dp),
+                    .width(120.dp),
                 verticalArrangement = Arrangement.Center,
             ) {
                 Row(
@@ -391,7 +391,7 @@ fun ContactCard(user: MessengerUser, onClick: (MessengerUser) -> Unit) {
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(150.dp), verticalArrangement = Arrangement.Bottom
+                    .width(160.dp), verticalArrangement = Arrangement.Bottom
             ) {
                 Text(
                     text = user.phone,
@@ -401,7 +401,7 @@ fun ContactCard(user: MessengerUser, onClick: (MessengerUser) -> Unit) {
                     textAlign = TextAlign.End,
                     modifier = Modifier
                         .height(30.dp)
-                        .width(145.dp)
+                        .width(160.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
