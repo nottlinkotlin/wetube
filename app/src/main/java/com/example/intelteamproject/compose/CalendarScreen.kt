@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,13 +66,9 @@ fun CalendarScreen(navController: NavController) {
 
     }
     Column(
-        verticalArrangement = Arrangement.Bottom,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .padding(start = 24.dp)
+        verticalArrangement = Arrangement.Bottom
+
     ) {
-
-
         Bottom(navController = navController)
     }
 
@@ -82,6 +79,9 @@ fun CalendarScreen(navController: NavController) {
 @Composable
 fun ScheduleScreen() {
     Scaffold(
+        modifier = Modifier
+            .background(Color(0xFFF5F5F5))
+            .padding(top = 40.dp, bottom = 70.dp),
         topBar = {
             // MyTopBar("스케줄") // MyTopBar 구현에 맞게 추가
         },
@@ -91,13 +91,13 @@ fun ScheduleScreen() {
     ) { innerPadding ->
         var selectedDate by remember { mutableStateOf(LocalDate.now()) }
         var selectedDayIndex by remember { mutableStateOf(-1) }
+
         Column(
             modifier = Modifier
-                .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(size = 15.dp))
                 .padding(innerPadding)
-                .fillMaxSize(0.95f),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .background(Color(0xFFF5F5F5))
+
         ) {
             CalendarComposable(
                 modifier = Modifier.fillMaxWidth(),
@@ -176,16 +176,22 @@ fun CalendarComposable(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             val daysOfWeek = listOf("일", "월", "화", "수", "목", "금", "토")
+            val isDarkMode = isSystemInDarkTheme()
 
             daysOfWeek.forEachIndexed { index, day ->
                 Text(
                     text = day,
                     modifier = Modifier.weight(1f),
-                    color = if (index == 0) Color.Red else if (index == 6) Color.Blue else Color.Black,
+                    color = when (index) {
+                        0 -> if (isDarkMode) Color.Red else Color.Red
+                        6 -> if (isDarkMode) Color.Blue else Color.Blue
+                        else -> if (isDarkMode && index in 1..5) Color.White else Color.Black
+                    },
                     textAlign = TextAlign.Center
                 )
             }
         }
+
         val firstDayOfMonth = selectedDate.withDayOfMonth(1)
         val lastDayOfMonth = selectedDate.withDayOfMonth(selectedDate.lengthOfMonth())
         val daysInMonth = (1..lastDayOfMonth.dayOfMonth).toList()
@@ -287,9 +293,19 @@ fun CalendarDay(
     isFirstInRow: Boolean,
     isLastInRow: Boolean
 ) {
+    val textColor = when {
+        date.dayOfWeek.value in 1..5 -> {
+            if (isSystemInDarkTheme() && isSelected) Color.Black
+            else if (isSystemInDarkTheme()) Color.White
+            else Color.Black
+        }
+        date.dayOfWeek.value == 7 -> Color.Red // 일요일은 빨간색
+        date.dayOfWeek.value == 6 -> Color.Blue // 토요일은 파란색
+        else -> Color.Black
+    }
     Box(
         modifier = Modifier
-            .size(width = 30.dp, height = 110.dp)
+            .size(width = 28.dp, height = 90.dp)
             .clip(RoundedCornerShape(8.dp))
             .then(
                 if (isSelected) Modifier.border(
@@ -308,7 +324,7 @@ fun CalendarDay(
             text = date.dayOfMonth.toString(),
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Black,
+            color = textColor, // 수정된 부분
             modifier = Modifier
                 .background(if (isSelected) Color.White else Color.Transparent)
                 .padding(vertical = 2.dp, horizontal = 4.dp)
@@ -317,12 +333,12 @@ fun CalendarDay(
         if (memo != null && memo.isNotEmpty()) {
             Text(
                 text = memo,
-                color = Color.Black,
-                fontSize = 10.sp,
+                color = Color.White,
+                fontSize = 8.sp,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(Alignment.Center)
-                    .background(Color.Cyan)
+                    .align(Alignment.BottomCenter)
+                    .background(Color(0xFFC4302B))
                     .padding(4.dp)
             )
         }

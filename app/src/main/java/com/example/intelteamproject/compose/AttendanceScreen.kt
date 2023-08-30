@@ -2,6 +2,7 @@ package com.example.intelteamproject.compose
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.modifier.modifierLocalConsumer
@@ -42,6 +44,14 @@ import kotlinx.coroutines.tasks.await
 
 @Composable
 fun AttendanceScreen(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .background(Color(0xFFF5F5F5))
+            .padding(bottom = 70.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+
+    ) {
+        Top(title = "근태 관리")
 
     //name, checked, checked Time을 모두 불러 와서 보여 주는 화면 만들기
 
@@ -98,6 +108,12 @@ fun AttendanceScreen(navController: NavController) {
     }
 
 }
+    Column(
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        Bottom(navController = navController)
+    }
+}
 
 @Composable
 fun ListItem(user: User) {
@@ -115,7 +131,7 @@ fun ListItem(user: User) {
         modifier = Modifier
             .height(100.dp)
             .width(380.dp)
-
+            .padding(start = 15.dp, end = 15.dp),
     ) {
 
         Row( modifier = Modifier.fillMaxWidth(),

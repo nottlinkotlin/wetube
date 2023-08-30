@@ -7,15 +7,17 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,7 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInteropFilter
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -38,10 +39,21 @@ import com.google.mlkit.vision.digitalink.Ink
 
 @Composable
 fun SignatureScreen(navController: NavController){
-    Column {
+    Column(
+        modifier = Modifier
+            .background(Color(0xFFF5F5F5))
+            .padding(bottom = 70.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+
+    ) {
+        Top(title = "전자 서명")
         selectImage()
         Signature()
-
+    }
+    Column(
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        Bottom(navController = navController)
     }
 
 }
@@ -76,23 +88,20 @@ fun selectImage() {
                 launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             },
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFC91D11),
-                contentColor = Color.White
+                containerColor = Color(0xFFC4302B)
             ),
-
             modifier = Modifier
                 .width(120.dp)
                 .height(50.dp)
                 .padding(top = 12.dp),
-
             ) {
             Text(
                 "서류 등록",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.ExtraBold
+//                fontWeight = FontWeight.ExtraBold
             )
         }
-
+        Spacer(modifier = Modifier.height(6.dp))
     }
 
 }
