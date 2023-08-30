@@ -51,6 +51,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.example.intelteamproject.R
+import com.example.intelteamproject.Screen
 import kotlinx.coroutines.delay
 
 @Composable
@@ -291,6 +292,7 @@ fun Top(title: String) {
 
 @Composable
 fun Bottom(navController: NavController) {
+    val currentDestination = navController.currentDestination?.route
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -305,7 +307,12 @@ fun Bottom(navController: NavController) {
         ) {
             Button(
                 onClick = {
-                    navController.navigate("main")
+                    if (currentDestination != Screen.Main.route) {
+                        navController.popBackStack()
+                        navController.navigate(Screen.Main.route)
+                    } else {
+
+                    }
 
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -326,7 +333,12 @@ fun Bottom(navController: NavController) {
 
             Button(
                 onClick = {
-                    navController.navigate("signature")
+                    if (currentDestination != Screen.Signature.route) {
+                        navController.popBackStack(Screen.Main.route, false)
+                        navController.navigate(Screen.Signature.route)
+                    } else {
+
+                    }
 
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -347,7 +359,12 @@ fun Bottom(navController: NavController) {
             }
             Button(
                 onClick = {
-                    navController.navigate("manage")
+                    if (currentDestination != Screen.Manage.route) {
+                        navController.popBackStack(Screen.Main.route, false)
+                        navController.navigate(Screen.Manage.route)
+                    } else {
+
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
@@ -366,7 +383,12 @@ fun Bottom(navController: NavController) {
             }
             Button(
                 onClick = {
-                    navController.navigate("messenger")
+                    if (currentDestination != Screen.Messenger.route) {
+                        navController.popBackStack(Screen.Main.route, false)
+                        navController.navigate(Screen.Messenger.route)
+                    } else {
+
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
@@ -385,7 +407,12 @@ fun Bottom(navController: NavController) {
             }
             Button(
                 onClick = {
-                    navController.navigate("info")
+                    if (currentDestination != Screen.UserInfo.route) {
+                        navController.popBackStack(Screen.Main.route, false)
+                        navController.navigate(Screen.UserInfo.route)
+                    } else {
+
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
