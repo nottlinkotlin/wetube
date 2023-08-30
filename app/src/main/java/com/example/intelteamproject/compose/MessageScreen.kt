@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.intelteamproject.data.Message
 import com.example.intelteamproject.data.MessengerUser
 import com.example.intelteamproject.database.FirebaseAuthenticationManager
 import com.google.firebase.database.ChildEventListener
@@ -67,16 +68,11 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessageScreen(userUid: String, navController: NavController) {
-    var messages = remember { mutableStateListOf("") }
     var newMessage by remember { mutableStateOf("") }
-//    var messagesMap = remember { mutableStateMapOf<String, MutableList<Message>>() }
-//    var messageList = remember { mutableStateListOf<Message>() }
     var displayedMessages by remember { mutableStateOf(emptyList<Message>()) }
     //메세지가 화면에 다 찼을 때, 새로운 메세지가 화면에 보일 수 있도록 위로 자동 스크롤 변수
-//    var scrollToIndex by remember { mutableStateOf<Int?>(null) }
     val scrollState = rememberLazyListState()
     //firebase database에 연결 관련 변수
-//    val database = Firebase.database
     val authManager = FirebaseAuthenticationManager()
     val currentUser = authManager.getCurrentUser()
     val currentUid = currentUser?.uid
@@ -93,9 +89,7 @@ fun MessageScreen(userUid: String, navController: NavController) {
     //메세지 저장할 공간
     val messageRef =
         remember { Firebase.database.getReference("messages").child("$roomName") }
-//    val newMessageRef = remember {messageRef.push()}
 
-//    val messageRef = remember { Firebase.database.getReference("messages").child("message") }
 //    //메세지 불러오는 함수
     LaunchedEffect(Unit) {
         messageRef.addChildEventListener(object : ChildEventListener {
@@ -103,12 +97,14 @@ fun MessageScreen(userUid: String, navController: NavController) {
                 val text = snapshot.child("text").getValue(String::class.java)
                 val sender = snapshot.child("sender").getValue(String::class.java)
                 val senderUid = snapshot.child("senderUid").getValue(String::class.java)
-                val receiverPhotoUrl = snapshot.child("receiverPhotoUrl").getValue(String::class.java)
+                val receiverPhotoUrl =
+                    snapshot.child("receiverPhotoUrl").getValue(String::class.java)
                 val receiverUid = snapshot.child("receiverUid").getValue(String::class.java)
                 val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
 
                 if (text != null && sender != null && senderUid != null && receiverPhotoUrl != null && receiverUid != null && timestamp != null) {
-                    val message = Message(text, sender, senderUid, receiverPhotoUrl, receiverUid, timestamp)
+                    val message =
+                        Message(text, sender, senderUid, receiverPhotoUrl, receiverUid, timestamp)
 //                    val roomMessages = messagesMap.getOrPut(newMessageRef.key!!) { mutableListOf() }
                     if (!displayedMessages.contains(message)) {
                         displayedMessages += message
@@ -135,11 +131,7 @@ fun MessageScreen(userUid: String, navController: NavController) {
     }
     //자동 스크롤되는 런처
     LaunchedEffect(displayedMessages.size) {
-//        scrollToIndex = displayedMessages.size
-
         scrollState.animateScrollToItem(displayedMessages.size)
-
-//        }
     }
 
     LaunchedEffect(Unit) {
@@ -170,8 +162,8 @@ fun MessageScreen(userUid: String, navController: NavController) {
             }
     }
 
-    var currentUserFirestore = userList.filter { currentUser.uid == it.uid }
-    var otherUserFirestore = userList.filter { userUid == it.uid }
+    val currentUserFirestore = userList.filter { currentUser.uid == it.uid }
+    val otherUserFirestore = userList.filter { userUid == it.uid }
 
 
     Box(
@@ -279,7 +271,6 @@ fun MessageScreen(userUid: String, navController: NavController) {
                             IconButton(
                                 onClick = {
                                     if (newMessage.isNotBlank()) {
-//                                    printConversation = inputConversation
                                         val messageData = mapOf(
                                             "text" to newMessage,
                                             "sender" to currentUserFirestore[0].name,
@@ -288,11 +279,8 @@ fun MessageScreen(userUid: String, navController: NavController) {
                                             "receiverUid" to otherUserFirestore[0].uid,
                                             "timestamp" to ServerValue.TIMESTAMP
                                         )
-
                                         messageRef.push().setValue(messageData)
 
-
-//                                    messageList.add(inputConversation)
                                         newMessage = ""
 
                                     }
@@ -309,7 +297,6 @@ fun MessageScreen(userUid: String, navController: NavController) {
                     }
                 }
             }
-
         }
     }
 }
@@ -321,8 +308,8 @@ fun ConversationBox(index: Int, message: Message?) {
     val currentUid = currentUser?.uid
     //메세지와 같이 띄울 시간 포멧
     val timestampShow = SimpleDateFormat(
-        "yyyy년 MM월 dd일 E요일 hh:mm",
-        Locale.getDefault()
+        "yyyy년 MM월 dd일 E요일 a K:mm",
+        Locale.KOREA
     ).format(Date(message?.timestamp as Long))
 
     message.text?.let {
@@ -363,11 +350,18 @@ fun ConversationBox(index: Int, message: Message?) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start
             ) {
-                AsyncImage(
-                    model = message.senderPhotoUrl,
-                    contentDescription = "프로필 사진",
-                    modifier = Modifier.size(20.dp),
-                )
+                Button(
+                    onClick = { /*TODO*/ },
+                    contentPadding = PaddingValues(0.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(Color.Transparent)
+                ) {
+                    AsyncImage(
+                        model = message.senderPhotoUrl,
+                        contentDescription = "프로필 사진",
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
                 Column {
                     Text(
                         text = message.sender,
@@ -402,13 +396,12 @@ fun ConversationBox(index: Int, message: Message?) {
     }
 }
 
-
-data class Message(
-    val text: String? = null,
-    val sender: String = "",
-    val senderUid: String = "",
-    val senderPhotoUrl: String = "",
-    val receiverUid: String = "",
-    val timestamp: Any? = null
-)
+//data class Message(
+//    val text: String? = null,
+//    val sender: String = "",
+//    val senderUid: String = "",
+//    val senderPhotoUrl: String = "",
+//    val receiverUid: String = "",
+//    val timestamp: Any? = null
+//)
 

@@ -1,6 +1,6 @@
 package com.example.intelteamproject.compose
 
-import android.content.ContentValues.TAG
+import android.content.ContentValues
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -34,13 +34,10 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,22 +55,17 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.intelteamproject.R
 import com.example.intelteamproject.Screen
+import com.example.intelteamproject.data.Message
 import com.example.intelteamproject.data.MessengerUser
-import com.example.intelteamproject.data.User
 import com.example.intelteamproject.database.FirebaseAuthenticationManager
-import com.example.intelteamproject.database.FirestoreManager
 import com.example.intelteamproject.ui.theme.IntelTeamProjectTheme
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ktx.database
-import com.google.firebase.firestore.QueryDocumentSnapshot
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.tasks.await
 
 
 //@Preview(showBackground = true)
@@ -100,31 +92,15 @@ fun MessengerScreen(navController: NavController) {
     ) {
         var clickContact by remember { mutableStateOf(true) }
         var clickDm by remember { mutableStateOf(false) }
-//        val firestoreManager = FirestoreManager()
         val authManager = FirebaseAuthenticationManager()
         val currentUser = authManager.getCurrentUser()
-        val uid = currentUser?.uid
+        val currentUid = currentUser?.uid
 
         val db = Firebase.firestore
         val usersCollection = db.collection("users")
         val userList = remember { mutableStateListOf<MessengerUser>() }
 
-        val MyInfoList = remember { mutableStateListOf<String>() }
-
-
-//        usersCollection.document(uid!!).get()
-//            .addOnSuccessListener { documentSnapshot ->
-//                val user = documentSnapshot.toObject(User::class.java)
-//                MyInfoList.add(user!!.name)
-//                MyInfoList.add(user.phone)
-//                MyInfoList.add(user.photoUrl)
-//                MyInfoList.add(user.position)
-//            }
-//            .addOnFailureListener { exception ->
-//            }
-
-
-        LaunchedEffect(Unit) {
+//        LaunchedEffect(Unit) {
             usersCollection.get()
                 .addOnSuccessListener { querySnapshot ->
                     for (document in querySnapshot) {
@@ -143,14 +119,16 @@ fun MessengerScreen(navController: NavController) {
                                 uid = userUid!!
 
                             )
-                            userList.add(messengerUser)
+                            if (!userList.contains(messengerUser)) {
+                                userList.add(messengerUser)
+                            }
                         }
                     }
                 }
                 .addOnFailureListener { exception ->
                     println("Error getting documents: $exception")
                 }
-        }
+//        }
 
         Column(
             modifier = Modifier.fillMaxSize()
@@ -211,10 +189,10 @@ fun MessengerScreen(navController: NavController) {
             }
             //상단 아이콘이 눌렸을 때 각각 해당하는 창을 띄움
             if (clickContact) {
-                ContactView(currentUser!!, MyInfoList, userList, navController)
+                ContactView(currentUser!!, userList, navController)
             }
             if (clickDm) {
-                MessengerView(userList, navController)
+                MessengerView(currentUid, userList, navController)
             }
         }
     }
@@ -224,13 +202,11 @@ fun MessengerScreen(navController: NavController) {
 @Composable
 fun ContactView(
     currentUser: FirebaseUser,
-    list: MutableList<String>,
     userList: MutableList<MessengerUser>,
     navController: NavController
 ) {
     var clickUser by remember { mutableStateOf<MessengerUser?>(null) }
     val myCard = userList.filter { currentUser.uid == it.uid }
-//    var mine: MessengerUser
     if (myCard.isNotEmpty()) {
         Card(
             modifier = Modifier
@@ -321,10 +297,6 @@ fun ContactView(
 //연락처 창에 띄울 다른 사용자들의 목록의 틀
 @Composable
 fun ContactCard(user: MessengerUser, onClick: (MessengerUser) -> Unit) {
-//    val name = user!!.displayName
-//    val email = user!!.email
-//    val photoUrl = user!!.photoUrl
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -345,17 +317,6 @@ fun ContactCard(user: MessengerUser, onClick: (MessengerUser) -> Unit) {
                 modifier = Modifier.size(60.dp),
                 shape = RoundedCornerShape(20.dp),
             ) {
-//                photoUrl?.let { imageUri ->
-//                    val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-//                        decodeBitmap(
-//                            ImageDecoder.createSource(
-//                                LocalContext.current.contentResolver,
-//                                photoUrl
-//                            )
-//                        )
-//                    } else {
-//                        null
-//                    }
                 AsyncImage(
                     model = user.photoUrl,
                     contentDescription = "프로필 사진",
@@ -409,48 +370,151 @@ fun ContactCard(user: MessengerUser, onClick: (MessengerUser) -> Unit) {
 
 //메세지 모여있는 창
 @Composable
-fun MessengerView(userList: MutableList<MessengerUser>, navController: NavController) {
+fun MessengerView(currentUid: String?, userList: MutableList<MessengerUser>, navController: NavController) {
     var displayedMessageList by remember { mutableStateOf(emptyList<Message>()) }
-    val messageRef = remember { Firebase.database.getReference("messages").child("message") }
-    val messageKeyName by remember { mutableStateOf<String?>(null) }
-    //메세지 불러오는 함수
+    val databaseReference = FirebaseDatabase.getInstance().getReference("messages")
+//    var useruid = userList.
+//    val roomNameList = remember { mutableStateListOf("", "") }
+//    var roomName = ""
+//    var userUid = ""
+//    for (user in userList) {
+//        userUid = user.uid
+//        roomNameList[0] = currentUid!!
+//        roomNameList[1] = userUid
+//        roomNameList.sortDescending()
+//        for (name in roomNameList) {
+//            roomName += name
+//        }
+//        //메세지 저장할 공간
+//        val messageRef =
+//            remember { Firebase.database.getReference("messages").child("$roomName") }
+//        val messageKeyName by remember { mutableStateOf<String?>(null) }
+//        val allRoomsWithMessages = remember { mutableStateOf<List<Room>>(emptyList()) }
+
+        //방 정보 불러오는 함수
+//    var allRoomsFlow = flow {
+//        val allRooms = getAllRoomAndMessages()
+//        emit(allRooms)
+//    }.collectAsState(initial = emptyList())
 //    LaunchedEffect(Unit) {
-//        messageRef.addChildEventListener(object : ChildEventListener {
-//            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-//                val text = snapshot.child("text").getValue(String::class.java)
-//                val sender = snapshot.child("sender").getValue(String::class.java)
-//                val senderUid = snapshot.child("senderUid").getValue(String::class.java)
-//                val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
+//         val allRooms = getAllRoomAndMessages()
+//        allRoomsFlow.value = allRooms
+//    }
+//    val messageListener = object : ValueEventListener {
+//        override fun onDataChange(snapshot: DataSnapshot) {
+//            val room = snapshot.getValue<Message>()
 //
-//                if (text != null && sender != null && senderUid != null && timestamp != null) {
-//                    val message = Message(text, sender, senderUid, timestamp)
-////                    val roomMessages = messagesMap.getOrPut(newMessageRef.key!!) { mutableListOf() }
-//                    if (!displayedMessageList.contains(message)) {
-//                        displayedMessageList += message
-//                    }
+//            displayedMessageList?.let {
+//                if (!displayedMessageList.contains(room)) {
+//                    displayedMessageList += room
 //                }
 //            }
+//        }
 //
-//            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-////            TODO("Not yet implemented")
-//            }
-//
-//            override fun onChildRemoved(snapshot: DataSnapshot) {
-////            TODO("Not yet implemented")
-//            }
-//
-//            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
-////            TODO("Not yet implemented")
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {
-//                Log.w(TAG, "Failed to read value.", error.toException())
-//            }
-//        })
+//        override fun onCancelled(error: DatabaseError) {
+//            Log.w(ContentValues.TAG, "Failed to read value.", error.toException())
+//        }
 //    }
+//    databaseReference.addValueEventListener(messageListener)
+    databaseReference.addValueEventListener(object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+//            val allMessages = mutableListOf<Message>()
+
+            for (roomSnapShot in snapshot.children) {
+                val roomName = roomSnapShot.key
+
+                for (messageSnapshot in roomSnapShot.children) {
+                    val text = snapshot.child("text").getValue(String::class.java)
+                    val sender = snapshot.child("sender").getValue(String::class.java)
+                    val senderUid = snapshot.child("senderUid").getValue(String::class.java)
+                    val receiverPhotoUrl =
+                        snapshot.child("receiverPhotoUrl").getValue(String::class.java)
+                    val receiverUid = snapshot.child("receiverUid").getValue(String::class.java)
+                    val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
+
+                    if (text != null && sender != null && senderUid != null && receiverPhotoUrl != null && receiverUid != null && timestamp != null) {
+                        val message =
+                            Message(
+                                text,
+                                sender,
+                                senderUid,
+                                receiverPhotoUrl,
+                                receiverUid,
+                                timestamp,
+                            )
+                        if (!displayedMessageList.contains(message) && (currentUid == senderUid || currentUid == receiverUid)) {
+                            displayedMessageList += message
+                        }
+                    }
+                }
+            }
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            Log.w(ContentValues.TAG, "Failed to read value.", error.toException())
+
+        }
+    })
+
+        //메세지 불러오는 함수
+//        LaunchedEffect(Unit) {
+//            messageRef.addChildEventListener(object : ChildEventListener {
+//                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+//                    val text = snapshot.child("text").getValue(String::class.java)
+//                    val sender = snapshot.child("sender").getValue(String::class.java)
+//                    val senderUid = snapshot.child("senderUid").getValue(String::class.java)
+//                    val receiverPhotoUrl =
+//                        snapshot.child("receiverPhotoUrl").getValue(String::class.java)
+//                    val receiverUid = snapshot.child("receiverUid").getValue(String::class.java)
+//                    val timestamp = snapshot.child("timestamp").getValue(Long::class.java)
+//
+//                    if (text != null && sender != null && senderUid != null && receiverPhotoUrl != null && receiverUid != null && timestamp != null) {
+//                        val message =
+//                            Message(
+//                                text,
+//                                sender,
+//                                senderUid,
+//                                receiverPhotoUrl,
+//                                receiverUid,
+//                                timestamp
+//                            )
+////                    val roomMessages = messagesMap.getOrPut(newMessageRef.key!!) { mutableListOf() }
+//                        if (!displayedMessageList.contains(message)) {
+//                            displayedMessageList += message
+//                        }
+//                    }
+//                }
+//
+//                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+////            TODO("Not yet implemented")
+//                }
+//
+//                override fun onChildRemoved(snapshot: DataSnapshot) {
+////            TODO("Not yet implemented")
+//                }
+//
+//                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+////            TODO("Not yet implemented")
+//                }
+//
+//                override fun onCancelled(error: DatabaseError) {
+//                    Log.w(ContentValues.TAG, "Failed to read value.", error.toException())
+//                }
+//            })
+//        }
+//    }
+//    val selectedRoom = allRoomsFlow.value.filter { room ->
+//        room.message?.any{ message ->
+//            message.senderUid == currentUid && message.receiverUid == currentUid
+//        } == true
+//    }
+//    val selectedRoom = displayedMessageList.filter { message ->
+//        message.senderUid == currentUid && message.receiverUid == currentUid
+//    }
+//    val allRoomsState by allRoomsFlow.collectAsState(initial = emptyList())
     LazyColumn {
-        items(10) { user ->
-            MessageList(user, navController)
+        items(displayedMessageList) { message ->
+            MessageList(message, navController)
         }
 
     }
@@ -458,7 +522,8 @@ fun MessengerView(userList: MutableList<MessengerUser>, navController: NavContro
 
 //메세지 창에 띄울 메세지 목록의 틀
 @Composable
-fun MessageList(user: Int, navController: NavController) {
+fun MessageList(message: Message, navController: NavController) {
+    Text(text = "$message", color = Color.Black)
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -497,15 +562,17 @@ fun MessageList(user: Int, navController: NavController) {
                 Row(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = "이름${user}",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(25.dp),
-                        color = Color.Black
-                    )
+//                    for (message in room.message ?: emptyList()) {
+                        Text(
+                            text = message.sender,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(25.dp),
+                            color = Color.Black
+                        )
+//                    }
 //                        Text(text = "현재 상태", fontSize = 15.sp)
                 }
                 Row(
@@ -514,20 +581,24 @@ fun MessageList(user: Int, navController: NavController) {
                         .height(30.dp)
                         .fillMaxWidth()
                 ) {
-                    Text(
-                        text = "가장 최근 메세지",
-                        fontSize = 15.sp,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxSize(),
-                        color = Color.Black
-                    )
+//                    val latestMessage = room.message?.lastOrNull()?.text
+//                    latestMessage?.let {
+                        Text(
+                            text = "가장 최근 메세지",
+                            fontSize = 15.sp,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxSize(),
+                            color = Color.Black
+                        )
+//                    }
                 }
             }
             Spacer(modifier = Modifier.width(15.dp))
         }
     }
 }
+
 
 //@Preview
 @Composable
@@ -546,7 +617,6 @@ fun SendMessage(user: MessengerUser, navController: NavController, onDissmiss: (
         },
         text = {
             Button(
-//                onClick = { navController.navigate(Screen.Message.route + "$userUid") },
                 onClick = { navController.navigate("message/$userUid") },
                 colors = ButtonDefaults.buttonColors(Color.White),
                 modifier = Modifier.fillMaxWidth(),
@@ -567,4 +637,26 @@ fun SendMessage(user: MessengerUser, navController: NavController, onDissmiss: (
     )
 }
 
+
+//suspend fun getAllRoomAndMessages(): List<Room> {
+//    val roomsCollection = Firebase.firestore.collection("rooms")
+//    val roomList = mutableListOf<Room>()
+//    val querySnapshot = roomsCollection.get().await()
+//
+//    for (document in querySnapshot) {
+//        val room = document.toObject(Room::class.java)
+//        val messagesCollection = roomsCollection.document(document.id)
+//            .collection("messages")
+//            .get()
+//            .await()
+//
+//        val messageList = mutableListOf<Message>()
+//        for (messageDoc in messagesCollection) {
+//            val message = messageDoc.toObject(Message::class.java)
+//            messageList.add(message)
+//        }
+//        roomList.add(room.copy(message = messageList))
+//    }
+//    return roomList
+//}
 
