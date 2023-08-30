@@ -81,7 +81,7 @@ fun selectImage() {
             modifier = Modifier
                 .padding(top = 20.dp)
                 .width(700.dp)
-                .height(500.dp)
+                .height(400.dp)
         )
         Button(
             onClick = {
@@ -171,8 +171,9 @@ fun Signature() {
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(300.dp)
-            ) {
+                    .height(500.dp)
+                    .padding(bottom = 100.dp)
+      ) {
 //            val ink = inkBuilder.build()
                 for (stroke in ink.strokes) {
                     drawPath(

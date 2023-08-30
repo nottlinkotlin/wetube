@@ -109,7 +109,8 @@ fun AttendanceScreen(navController: NavController) {
 
 }
     Column(
-        verticalArrangement = Arrangement.Bottom
+        verticalArrangement = Arrangement.Bottom,
+        modifier = Modifier
     ) {
         Bottom(navController = navController)
     }
