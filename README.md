@@ -3,7 +3,7 @@
 
 - 개발 환경: Android Studio  
 
-- Java version : 1.8  
+- Java version : 17  
 
 - Kotlin version: 1.9.20  
 
