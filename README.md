@@ -28,7 +28,7 @@
 - Target SDK : 34
 - Jetpack Compose: UI 구성, version 1.4.3
 - Firebase: Authentication/Firestore/Realtime Database/Storage
-- Google Play Services: 인증 및 위치 서비스
+- Google Play Services: Fused Location Provider
 - AndroidX Libraries: coroutine, navigation, camera
 
 ###### 추가적인 라이브러리
