@@ -32,7 +32,7 @@
 - AndroidX Libraries: coroutine, navigation, camera
 
 ###### 추가적인 라이브러리
-- CameraX: 카메라 기능 version 1.3.0-alpha04
+<!-- - CameraX: 카메라 기능 version 1.3.0-alpha04 -->
 - ZXing: 바코드 및 QR 코드 스캔 기능, version 3.4.1
 - ML Kit Digital Ink Recognition: 디지털 잉크 인식 기능, version 18.1.0
 - Coil: 이미지 로딩 및 캐싱, Jetpack Compose 지원 version 2.4.0
